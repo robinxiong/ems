@@ -109,9 +109,32 @@ func (permission Permission) HasPermission(mode PermissionMode, roles ...interfa
 }
 
 //Concat 将两个权限合并为一个
-
+//后者不覆盖前者
 func (permission *Permission) Concat(newPermission *Permission) *Permission{
-	var result = permission{
-		Role: Global
+	var result = Permission{
+		Role: Global,
+		AllowedRoles: map[PermissionMode][]string{},
+		DeniedRoles: map[PermissionMode][]string{},
 	}
+
+	var appendRoles = func(p *Permission){
+		if p != nil {
+			result.Role = p.Role
+
+			for mode, roles := range p.DeniedRoles {
+				result.DeniedRoles[mode] = append(result.DeniedRoles[mode], roles...)
+			}
+
+			for mode, roles := range p.AllowedRoles {
+				result.AllowedRoles[mode] = append(result.AllowedRoles[mode], roles...)
+			}
+		}
+
+	}
+
+	appendRoles(newPermission)
+	appendRoles(permission)
+
+	return &result
+
 }
