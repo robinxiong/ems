@@ -1,6 +1,9 @@
 package config
 
-import "os"
+import (
+	"os"
+	"ems/render"
+)
 
 type SMTPConfig struct {
 	Host string
@@ -25,5 +28,6 @@ var Config = struct {
 
 var (
 	Root = os.Getenv("GOPATH") + "/src/ems/site"
-	View
+	View *render.Render
+
 )

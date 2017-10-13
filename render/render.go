@@ -1,13 +1,13 @@
 package render
 
 import (
-	"net/http"
-	"html/template"
-	"ems/render/assetfs"
-	"path/filepath"
 	"ems/core/utils"
-	"strings"
+	"ems/render/assetfs"
+	"html/template"
+	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 //DefaultLayout default layout name
@@ -21,17 +21,19 @@ type Render struct {
 	*Config
 	funcMaps template.FuncMap
 }
+
 // Config render config
 type Config struct {
-	ViewPaths []string
-	DefaultLayout string
-	FuncMapMaker func(render *Render, request *http.Request, writer http.ResponseWriter) template.FuncMap
+	ViewPaths       []string
+	DefaultLayout   string
+	FuncMapMaker    func(render *Render, request *http.Request, writer http.ResponseWriter) template.FuncMap //genereate FuncMap that could be used when render template based on request info
 	AssetFileSystem assetfs.Interface
 }
 
 //New initialize the render struct
-func New(config *Config, viewPaths ...string) *Render{
+func New(config *Config, viewPaths ...string) *Render {
 	if config == nil {
+
 		config = &Config{}
 	}
 
@@ -45,33 +47,35 @@ func New(config *Config, viewPaths ...string) *Render{
 
 	config.ViewPaths = append(append(config.ViewPaths, viewPaths...), DefaultViewPath)
 
-	r := &Render{
-		Config: config,
-		funcMaps:map[string]interface{},
-	}
+	render := &Render{funcMaps: map[string]interface{}{}, Config: config}
 
 	for _, viewPath := range config.ViewPaths {
-		r.RegisterViewPath(viewPath)
+		render.RegisterViewPath(viewPath)
 	}
-	return r
+
+	return render
 }
 
 //RegisterViewPath register view path
 func (render *Render) RegisterViewPath(paths ...string) {
+
 	for _, pth := range paths {
 		if filepath.IsAbs(pth) {
 			render.ViewPaths = append(render.ViewPaths, pth)
 			render.AssetFileSystem.RegisterPath(pth) //将视图路径也添加到AssetFileSystem
 		} else {
+
 			//将当前路径添加到pth前，生成绝对路径, 如果不存在，则调用utils.AppRoot中的路径
-			if absPath, err := filepath.Abs(pth); err == nil && isExistingDir(pth){
+			if absPath, err := filepath.Abs(pth); err == nil && isExistingDir(pth) {
+
 				render.ViewPaths = append(render.ViewPaths, absPath)
 				render.AssetFileSystem.RegisterPath(absPath)
 			} else if isExistingDir(filepath.Join(utils.AppRoot, "vendor", pth)) {
+
 				render.AssetFileSystem.RegisterPath(filepath.Join(utils.AppRoot, "vendor", pth))
 			} else {
 				for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-					if p:= filepath.Join(gopath, "src", pth); isExistingDir(p) {
+					if p := filepath.Join(gopath, "src", pth); isExistingDir(p) {
 						render.ViewPaths = append(render.ViewPaths, p)
 						render.AssetFileSystem.RegisterPath(p)
 					}
@@ -110,9 +114,35 @@ func (render *Render) SetAssetFS(assetFS assetfs.Interface) {
 	for _, viewPath := range render.ViewPaths {
 		assetFS.RegisterPath(viewPath)
 	}
-
 	render.AssetFileSystem = assetFS
 }
 
 // Layout set layout for template.
-func (render *Render) Layout(name string) *Te
+func (render *Render) Layout(name string) *Template {
+	return &Template{render: render, layout: name}
+}
+
+// Funcs set helper functions for template with default "application" layout.
+func (render *Render) Funcs(funcMap template.FuncMap) *Template {
+	tmpl := &Template{render: render, usingDefaultLayout: true}
+	return tmpl.Funcs(funcMap)
+}
+
+// Execute render template with default "application" layout.
+func (render *Render) Execute(name string, context interface{}, request *http.Request, writer http.ResponseWriter) error {
+	tmpl := &Template{render: render, usingDefaultLayout: true}
+	return tmpl.Execute(name, context, request, writer)
+}
+
+// RegisterFuncMap register FuncMap for render.
+func (render *Render) RegisterFuncMap(name string, fc interface{}) {
+	if render.funcMaps == nil {
+		render.funcMaps = template.FuncMap{}
+	}
+	render.funcMaps[name] = fc
+}
+
+// Asset get content from AssetFS by name
+func (render *Render) Asset(name string) ([]byte, error) {
+	return render.AssetFileSystem.Asset(name)
+}
