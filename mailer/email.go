@@ -1,10 +1,12 @@
 package mailer
 
-import "net/mail"
+import (
+	"net/mail"
+)
 
 // Email email struct
 type Email struct {
-	TO, CC, BCC   []mail.Address
+	TO, CC, BCC   []mail.Address //BCC密送
 	From, ReplyTo *mail.Address
 	Subject       string
 	Headers       mail.Header
@@ -13,14 +15,11 @@ type Email struct {
 	HTML          string // html email content
 }
 
-
-
 // Attachment attachment struct
 type Attachment struct {
 	FileName string
 	Inline   bool
 }
-
 
 // Merge merge email struct and create a new one
 func (email Email) Merge(e Email) Email {
