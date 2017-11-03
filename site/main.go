@@ -1,10 +1,15 @@
 package main
 
 import (
+	"ems/site/config"
+	"ems/site/config/routes"
 	"flag"
-	"log"
+	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/fatih/color"
+	"ems/middlewares"
 )
 
 func main() {
@@ -14,9 +19,22 @@ func main() {
 	compileTemplate := cmdLine.Bool("compile-templates", false, "Compile Template")
 	cmdLine.Parse(os.Args[1:])
 
-	//log.Fatal(http.ListenAndServe(":8080", nil))
-	log.Fatal(http.ListenAndServeTLS(":8080", "server.cert", "server.key", nil))
+	mux := http.NewServeMux()
+	mux.Handle("/", routes.Router())
+
+
+
 	if *compileTemplate {
 
 	}
+
+	fmt.Print(color.GreenString(fmt.Sprintf("Listening on: %v\n", config.Config.Port)))
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.Config.Port), middlewares.Apply(mux)); err != nil {
+		panic(err)
+	}
+/*	if err := http.ListenAndServeTLS(fmt.Sprintf(":%d", config.Config.Port),"server.cert", "server.key", middlewares.Apply(mux)); err != nil {
+		panic(err)
+	}*/
+
+
 }

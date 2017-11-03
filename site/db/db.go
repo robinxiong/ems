@@ -7,5 +7,6 @@ var (
 )
 
 func init(){
-	var err error
+
+
 }
