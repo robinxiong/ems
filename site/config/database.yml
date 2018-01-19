@@ -2,3 +2,4 @@ db:
   adapter: mysql
   name: ems
   user: root
+  password: root

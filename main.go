@@ -1,30 +1,63 @@
 package main
 
 import (
-	"net/http"
-	"github.com/gorilla/sessions"
-
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"log"
-	"os"
+	"fmt"
 )
 
-var store = sessions.NewFilesystemStore("", []byte("something-very-secret"))
 
-func handler(w http.ResponseWriter, r *http.Request){
-	log.Println(os.TempDir())
-	session, err := store.Get(r, "session-name")
+
+func main() {
+	db, err := sql.Open("mysql", "root:root@/test?multiStatements=true")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		log.Println(err)
 	}
 
-	// Set some session values.
-	session.Values["foo"] = "1"
-	session.Values[42] = 43
-	// Save it before we write to the response/return from the handler.
-	session.Save(r, w)
-}
-func main() {
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":8080", nil)
+	defer db.Close()
+
+	err = db.Ping()
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+
+
+
+
+	rows, err := db.Query(`
+	select username from users limit 0, 10;
+	select uuid from users limit 0, 10;`)
+
+	if err != nil {
+		log.Print(err.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		name := ""
+		rows.Scan(&name)
+		fmt.Println(name)
+	}
+
+	if !rows.NextResultSet() {
+		log.Fatal("expected more result sets", rows.Err())
+	}
+	for rows.Next() {
+		uuid := ""
+		rows.Scan(&uuid)
+		fmt.Println(uuid)
+	}
+
+	rows, err = db.Query(`call id_users(?)`, 10)
+	if err != nil {
+		log.Print(err)
+	}
+	for rows.Next() {
+		name := ""
+		rows.Scan(&name)
+		fmt.Println(name)
+	}
+
 }

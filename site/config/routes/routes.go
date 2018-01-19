@@ -1,9 +1,13 @@
 package routes
 
 import (
+	"ems/core/utils"
 	"ems/site/app/controllers"
+	"ems/site/db"
 	"ems/wildcard_router"
 	"net/http"
+
+	"ems/core"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -16,7 +20,7 @@ func Router() *http.ServeMux {
 	if rootMux == nil {
 		router := chi.NewRouter()
 		router.Use(middleware.Logger)
-		/*router.Use(func(next http.Handler) http.Handler {
+		router.Use(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 				var (
 					tx          = db.DB
@@ -30,13 +34,10 @@ func Router() *http.ServeMux {
 				next.ServeHTTP(w, req)
 			})
 
-		})*/
+		})
 
 		//routes
 		router.Get("/", controllers.HomeIndex)
-		router.Get("/hello", func(w http.ResponseWriter, r *http.Request){
-			w.Write([]byte("hello world!!!!"))
-		})
 
 		rootMux = http.NewServeMux()
 		WildcardRouter = wildcard_router.New()
