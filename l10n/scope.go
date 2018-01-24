@@ -48,16 +48,16 @@ func getLocale(scope *gorm.Scope) (locale string, isLocale bool) {
 
 //设置scope中的所对应的model所对应struct的字段， 如果这个字段为LanguageCode, 则设置它的值
 func setLocale(scope *gorm.Scope, locale string) {
-	v, _ := reflect.New(scope.GetModelStruct().ModelType).Interface().(l10nInterface)
+	v, _ := scope.Value.(l10nInterface)
 	v.SetLocale(locale)
 
 	/*for _, field := range scope.Fields() {
-		field.Set(locale)  //13732 ns/op
+		field.Set(locale) //13732 ns/op
 	}*/
 	//scope.SetColumn("LanguageCode", locale)
 	/*
-	// copeSuite.BenchmarkSetLocale    5000000               572 ns/op 每次测试循环所花时间
-	v, _ := reflect.New(scope.GetModelStruct().ModelType).Interface().(l10nInterface)
-	v.SetLocale(locale)
+		// copeSuite.BenchmarkSetLocale    5000000               572 ns/op 每次测试循环所花时间
+		v, _ := reflect.New(scope.GetModelStruct().ModelType).Interface().(l10nInterface)
+		v.SetLocale(locale)
 	*/
 }
