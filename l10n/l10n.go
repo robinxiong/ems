@@ -8,6 +8,7 @@ type l10nInterface interface {
 	SetLocale(locale string)
 }
 
+
 type localeCreatableInterface interface {
 	CreatableFromLocale()
 }
@@ -30,7 +31,8 @@ func (l *Locale) SetLocale(locale string) {
 	l.LanguageCode = locale
 }
 
-// LocalCreatable允许你嵌入到你的model中，它使用数据库资源可以从locales中创建，默认情况下，它仅能从global中创建en-US
+
+// LocalCreatable允许你嵌入到你的model中，它使用数据库资源可以从locales中创建， 可以不先创建global记录，默认情况下，它仅能从global中创建en-US
 // LocaleCreatable if you embed it into your model, it will make the resource be creatable from locales, by default, you can only create it from global
 type LocaleCreatable struct {
 	Locale

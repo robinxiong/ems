@@ -48,6 +48,12 @@ func (s *ScopeSuite) TestIsLocaleCreateable(c *C) {
 	c.Assert(ok, Equals, false)
 }
 
+func (s *ScopeSuite) BenchmarkIsLocalizable(c *C) {
+	for i := 0; i < c.N; i++ {
+		// Logic to benchmark
+		IsLocalizable(s.Scope)
+	}
+}
 func (s *ScopeSuite) BenchmarkSetLocale(c *C) {
 	for i := 0; i < c.N; i++ {
 		// Logic to benchmark

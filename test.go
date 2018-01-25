@@ -1,28 +1,27 @@
 package main
 
 import (
-	"github.com/jinzhu/gorm"
-	"fmt"
+	"ems/test/utils"
 	"log"
+
 	_ "github.com/go-sql-driver/mysql"
-	"reflect"
 )
 
-type User struct {
-	gorm.Model
+type Product struct {
+	ID         int        `gorm:"primary_key"`
+	Categories []Category `gorm:"many2many:product_categories;ForeignKey:id;AssociationForeignKey:id"`
+}
+type Category struct {
+	ID   int `gorm:"primary_key"`
 	Name string
-	Password string
 }
 
-func main(){
-	user := &User{}
-	DB, err := gorm.Open("mysql", fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=True&loc=Local", "root", "root", "127.0.0.1", 3306, "ems"))
-	if err != nil {
-		log.Print(err)
-	}
-	isExist := DB.HasTable(&user)
-	log.Print(isExist)
-	typeOf := reflect.TypeOf(user)
-	valueOf := reflect.ValueOf(user)
-	log.Print(typeOf.Kind(), valueOf.Kind())
+func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	db := utils.TestDB()
+	db.DropTableIfExists(&Product{})
+	db.DropTableIfExists(&Category{})
+	db.Exec("drop table product_categories;")
+	//创建producs, categories表
+	db.AutoMigrate(&Product{}, &Category{})
 }
