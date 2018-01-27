@@ -20,6 +20,7 @@ type Product struct {
 	Categories      []Category `gorm:"many2many:product_categories;ForeignKey:id;AssociationForeignKey:id"`
 	Locale
 }
+
 type ColorVariation struct {
 	ID       int `gorm:"primary_key"`
 	Quantity int

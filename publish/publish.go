@@ -4,6 +4,16 @@ import (
 	"github.com/jinzhu/gorm"
 	"ems/core/utils"
 	"reflect"
+	"strings"
+)
+const (
+	//publish status
+	PUBLISHED = false
+	//publish status
+	DIRTY = true
+	//设置db模式
+	publishDraftMode = "publish:draft_mode"
+	publishEvent = "publish:publish_event"
 )
 type publishInterface interface {
 	GetPublishStatus() bool
@@ -36,13 +46,19 @@ type Publish struct {
 var injectedJoinTableHandler = map[reflect.Type]bool{}
 
 //初妈化一个Publish instance
+
 func New(db *gorm.DB) *Publish{
+	/*
+		我们知道，db.AutoMigrate(&Product{}), 它会调用到model_struct.go的TableName方法，这个方法会在最后的位置调用
+	DefaultTableNameHandler, DefaultTableNameHandler通常直接返回传入的表名，不做作何处理，而在这里，我们需要对publish类型的DB
+	调用AutoMigrate返回 _draft等后缀, 就需要修改这个函数
+	 */
 	tableHandler := gorm.DefaultTableNameHandler //默认直接返回tableName
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultName string) string {
-		tableName := tableHandler(db, defaultName)
+		tableName := tableHandler(db, defaultName)  //调用gorm中定义的DefaultTableNameHandler
 		//自定义model struct对应的表名字
 		if db != nil {
-			//db.Value为设置了model的值
+			//db.Value为设置了model的值实现了publishInterface
 			if IsPublishableModel(db.Value) {
 				typ := utils.ModelType(db.Value)
 				//如果没有缓存此model, 因injectedJoinTableHandler为bool值，如果没有找到，则为零值false
@@ -50,17 +66,55 @@ func New(db *gorm.DB) *Publish{
 					injectedJoinTableHandler[typ] = true //设置缓存
 					scope := db.NewScope(db.Value)
 					for _, field := range scope.GetModelStruct().StructFields {
-						if many2many := utils.ParseTagOption(field.Tag.Get("gorm"))["MANY2MANY"]; many2many!= nil {
-							db.Set
+						//如果包含了many2many的字段，我们需要先创建关联表
+						if many2many := utils.ParseTagOption(field.Tag.Get("gorm"))["MANY2MANY"]; many2many!= "" {
+							//调用SetJoinTableHandler, 找到此例，比如此例的名称为 Categories []Category `gorm:"many2many:product_categories"`
+							//source为 Product
+							//destination为Category
+							//调用publishJoinTableHandler.Setup, 它的第一个参数为field.Relationship， relationship是通过scope.GetModelStruct()获得
+							//第二个参数many2many, product_categories, 第三个参数为source, 第四个为destination
+							//如果db设置了public_draft, 则publishJoinTableHandler返回product_categories_draft
+							//但没有必要在SetJoinTableHandler方法中调用s.Table(table).AutoMigrate(handler)
+							db.SetJoinTableHandler(db.Value, field.Name, &publishJoinTableHandler{})
+							//更新表
+							db.AutoMigrate(db.Value)
 						}
 					}
 
+				}
+
+				var forceDraftTable bool
+				if forceDraft, ok := db.Get("publish:force_draft_table"); ok {
+					if forceMode, ok := forceDraft.(bool); ok && forceMode {
+						forceDraftTable = true
+					}
+				}
+
+				if IsDraftMode(db) || forceDraftTable {
+					return DraftTableName(tableName)
 				}
 			}
 		}
 		return tableName
 	}
-	return nil
+
+	//创建PublishEvent表，记录publish 和 discard 事件
+	//db.AutoMigrate(&PublishEvent{})
+
+	//注册publish回调函数
+	//在事件开启前，设置db为
+	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
+	return &Publish{ DB: db, }
+}
+
+// IsDraftMode 检查db是否设置了publish:draft_mode
+func IsDraftMode(db *gorm.DB) bool {
+	if draftMode, ok := db.Get(publishDraftMode); ok {
+		if isDraft, ok := draftMode.(bool); ok && isDraft {
+			return true
+		}
+	}
+	return false
 }
 
 
@@ -71,4 +125,34 @@ func IsPublishableModel(model interface{}) (ok bool) {
 		_, ok = reflect.New(utils.ModelType(model)).Interface().(publishInterface)
 	}
 	return
+}
+
+func DraftTableName(table string) string {
+	return OriginalTableName(table) + "_draft"
+}
+
+// OriginalTableName get original table name of passed in string
+func OriginalTableName(table string) string {
+	return strings.TrimSuffix(table, "_draft")
+}
+
+// ProductionDB get db in production mode
+func (pb Publish) ProductionDB() *gorm.DB {
+	return pb.DB.Set(publishDraftMode, false)
+}
+
+// DraftDB get db in draft mode
+func (pb Publish) DraftDB() *gorm.DB {
+	return pb.DB.Set(publishDraftMode, true)
+}
+
+
+// AutoMigrate run auto migrate in draft tables
+func (pb *Publish) AutoMigrate(values ...interface{}) {
+	for _, value := range values {
+		tableName := pb.DB.NewScope(value).TableName()
+		//Table方法用于返回一个db, 设置它的db.Search.table = 源表名_draft
+		//创建这个数据库表
+		pb.DraftDB().Table(DraftTableName(tableName)).AutoMigrate(value)
+	}
 }

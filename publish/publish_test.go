@@ -1,18 +1,18 @@
 package publish
 
 import (
-	"github.com/jinzhu/gorm"
-	"ems/test/utils"
 	"ems/l10n"
+	"ems/test/utils"
+	"fmt"
 	"testing"
-	"github.com/stretchr/testify/assert"
+
+	"github.com/jinzhu/gorm"
 )
 
 var pb *Publish
 var pbdraft *gorm.DB
 var pbprod *gorm.DB
 var db *gorm.DB
-
 
 type Product struct {
 	gorm.Model
@@ -41,17 +41,34 @@ type Category struct {
 	Status
 }
 
-
-func init(){
+func init() {
 	db = utils.TestDB()
 	l10n.RegisterCallbacks(db)
+
 	pb = New(db)
+
+	pbdraft = pb.DraftDB()
+	pbprod = pb.ProductionDB()
+	//删除所有数据库
+	for _, table := range []string{"product_categories", "product_categories_draft", "product_languages", "product_languages_draft", "author_books", "author_books_draft"} {
+		pbprod.Exec(fmt.Sprintf("drop table %v", table))
+	}
+
+
+
+	for _, value := range []interface{}{&Product{}, &Color{}, &Category{}, &Language{}, &Book{}, &Publisher{}, &Comment{}, &Author{}} {
+		//pbprod.DropTable(value)
+		pbdraft.DropTable(value)
+
+		//pbprod.AutoMigrate(value)
+		//调用publish中定义的AutoMigrate, 它会创建_draft表
+		//pb.AutoMigrate(value) //migrate to draft db
+	}
 }
 
-
 func TestIsPublishableModel(t *testing.T) {
-	product := Product{}
-	color := Color{}
-	assert.True(t, IsPublishableModel(&product), "Product is implement publishInterface")
-	assert.False(t, IsPublishableModel(&color), "color isn't implement publishInterface, because it not embbed Status struct")
+	/*	product := Product{}
+		color := Color{}
+		assert.True(t, IsPublishableModel(&product), "Product is implement publishInterface")
+		assert.False(t, IsPublishableModel(&color), "color isn't implement publishInterface, because it not embbed Status struct")*/
 }

@@ -5,23 +5,41 @@ import (
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
+	"fmt"
 )
 
-type Product struct {
-	ID         int        `gorm:"primary_key"`
-	Categories []Category `gorm:"many2many:product_categories;ForeignKey:id;AssociationForeignKey:id"`
+// `User` belongs to `Profile`, `ProfileID` is the foreign key
+type User struct {
+	gorm.Model
+	Profile   Profile `gorm:"save_associations:false"`
+	ProfileID int
 }
-type Category struct {
-	ID   int `gorm:"primary_key"`
+
+type Profile struct {
+	gorm.Model
 	Name string
 }
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	db := utils.TestDB()
-	db.DropTableIfExists(&Product{})
-	db.DropTableIfExists(&Category{})
-	db.Exec("drop table product_categories;")
-	//创建producs, categories表
-	db.AutoMigrate(&Product{}, &Category{})
+	db.DropTableIfExists(&User{})
+	db.DropTableIfExists(&Profile{})
+
+	db.AutoMigrate(&User{})
+	db.AutoMigrate(&Profile{})
+
+	user := User{
+		Profile: Profile{
+			Name: "test",
+		},
+	}
+
+	db.Create(&user)
+	var p Profile
+	db.Model(&user).Association("Profile").Find(&p)
+	scope := db.NewScope(&user)
+	fmt.Printf("%v\n", scope)
+	fmt.Println(scope.InstanceID())
 }
