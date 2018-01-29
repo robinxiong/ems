@@ -45,7 +45,7 @@ func init() {
 	db = utils.TestDB()
 	l10n.RegisterCallbacks(db)
 
-	pb = New(db)
+	pb := New(db)
 
 	pbdraft = pb.DraftDB()
 	pbprod = pb.ProductionDB()
@@ -54,15 +54,16 @@ func init() {
 		pbprod.Exec(fmt.Sprintf("drop table %v", table))
 	}
 
-
-
 	for _, value := range []interface{}{&Product{}, &Color{}, &Category{}, &Language{}, &Book{}, &Publisher{}, &Comment{}, &Author{}} {
-		//pbprod.DropTable(value)
-		pbdraft.DropTable(value)
+		//因为Color类没有实现publishInterface, 所以pbdraft正常删除了colors表, 而不是colors_draft
+		if IsPublishableModel(value) {
+			pbdraft.DropTable(value)
+		}
+		pbprod.DropTable(value)
 
-		//pbprod.AutoMigrate(value)
 		//调用publish中定义的AutoMigrate, 它会创建_draft表
-		//pb.AutoMigrate(value) //migrate to draft db
+		pbprod.AutoMigrate(value)
+		pb.AutoMigrate(value) //migrate to draft db
 	}
 }
 

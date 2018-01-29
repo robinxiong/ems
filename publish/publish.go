@@ -1,11 +1,13 @@
 package publish
 
 import (
-	"github.com/jinzhu/gorm"
 	"ems/core/utils"
 	"reflect"
 	"strings"
+
+	"github.com/jinzhu/gorm"
 )
+
 const (
 	//publish status
 	PUBLISHED = false
@@ -13,12 +15,14 @@ const (
 	DIRTY = true
 	//设置db模式
 	publishDraftMode = "publish:draft_mode"
-	publishEvent = "publish:publish_event"
+	publishEvent     = "publish:publish_event"
 )
+
 type publishInterface interface {
 	GetPublishStatus() bool
 	SetPublishStatus(bool)
 }
+
 // PublishEventInterface defined publish event itself's interface
 type PublishEventInterface interface {
 	Publish(*gorm.DB) error
@@ -29,6 +33,7 @@ type PublishEventInterface interface {
 type Status struct {
 	PublishStatus bool
 }
+
 // GetPublishStatus get publish status
 func (s Status) GetPublishStatus() bool {
 	return s.PublishStatus
@@ -42,20 +47,25 @@ func (s *Status) SetPublishStatus(status bool) {
 type Publish struct {
 	DB *gorm.DB
 }
+
 //缓存生成的model表名
 var injectedJoinTableHandler = map[reflect.Type]bool{}
 
 //初妈化一个Publish instance
 
-func New(db *gorm.DB) *Publish{
+func New(db *gorm.DB) *Publish {
 	/*
-		我们知道，db.AutoMigrate(&Product{}), 它会调用到model_struct.go的TableName方法，这个方法会在最后的位置调用
-	DefaultTableNameHandler, DefaultTableNameHandler通常直接返回传入的表名，不做作何处理，而在这里，我们需要对publish类型的DB
-	调用AutoMigrate返回 _draft等后缀, 就需要修改这个函数
-	 */
+			我们知道，db.AutoMigrate(&Product{}), 它会调用到model_struct.go的TableName方法，这个方法会在最后的位置调用
+		DefaultTableNameHandler, DefaultTableNameHandler通常直接返回传入的表名，不做作何处理，而在这里，我们需要对publish类型的DB
+		调用AutoMigrate返回 _draft等后缀, 就需要修改这个函数
+	*/
 	tableHandler := gorm.DefaultTableNameHandler //默认直接返回tableName
+	//修改gorm包的默认返回表的函数，只要调用了pulish.New(), 其它包都将使用这个函数来返回表名
+	//当删除表时，也会生成many2many都关联表
+
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultName string) string {
-		tableName := tableHandler(db, defaultName)  //调用gorm中定义的DefaultTableNameHandler
+
+		tableName := tableHandler(db, defaultName) //调用gorm中定义的DefaultTableNameHandler
 		//自定义model struct对应的表名字
 		if db != nil {
 			//db.Value为设置了model的值实现了publishInterface
@@ -65,9 +75,10 @@ func New(db *gorm.DB) *Publish{
 				if !injectedJoinTableHandler[typ] {
 					injectedJoinTableHandler[typ] = true //设置缓存
 					scope := db.NewScope(db.Value)
+
 					for _, field := range scope.GetModelStruct().StructFields {
 						//如果包含了many2many的字段，我们需要先创建关联表
-						if many2many := utils.ParseTagOption(field.Tag.Get("gorm"))["MANY2MANY"]; many2many!= "" {
+						if many2many := utils.ParseTagOption(field.Tag.Get("gorm"))["MANY2MANY"]; many2many != "" {
 							//调用SetJoinTableHandler, 找到此例，比如此例的名称为 Categories []Category `gorm:"many2many:product_categories"`
 							//source为 Product
 							//destination为Category
@@ -76,10 +87,10 @@ func New(db *gorm.DB) *Publish{
 							//如果db设置了public_draft, 则publishJoinTableHandler返回product_categories_draft
 							//但没有必要在SetJoinTableHandler方法中调用s.Table(table).AutoMigrate(handler)
 							db.SetJoinTableHandler(db.Value, field.Name, &publishJoinTableHandler{})
-							//更新表
-							db.AutoMigrate(db.Value)
 						}
 					}
+					//创建整个表，对于dropTable如果它存在many2many它也会创建子表, 比如drop(&Product{}) 它会先创建Product, product_categories product_languages, 然后在删除product
+
 
 				}
 
@@ -99,12 +110,16 @@ func New(db *gorm.DB) *Publish{
 	}
 
 	//创建PublishEvent表，记录publish 和 discard 事件
-	//db.AutoMigrate(&PublishEvent{})
+	db.AutoMigrate(&PublishEvent{})
 
 	//注册publish回调函数
 	//在事件开启前，设置db为
 	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
-	return &Publish{ DB: db, }
+	//在提交事务前，注册回调
+	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").Register("publish:sync_to_production_after_create", syncCreateFromProductionToDraft)
+	//提交事件前，注册回调
+	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").Register("gorm:create_publish_event", createPublishEvent)
+	return &Publish{DB: db}
 }
 
 // IsDraftMode 检查db是否设置了publish:draft_mode
@@ -116,7 +131,6 @@ func IsDraftMode(db *gorm.DB) bool {
 	}
 	return false
 }
-
 
 // IsPublishableModel check if current model is a publishable
 // 如果一个struct包含了Status, 则实现了publishInterface
@@ -145,7 +159,6 @@ func (pb Publish) ProductionDB() *gorm.DB {
 func (pb Publish) DraftDB() *gorm.DB {
 	return pb.DB.Set(publishDraftMode, true)
 }
-
 
 // AutoMigrate run auto migrate in draft tables
 func (pb *Publish) AutoMigrate(values ...interface{}) {

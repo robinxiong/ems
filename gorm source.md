@@ -548,3 +548,38 @@ DefaultCallback.Create().Register("gorm:after_create", afterCreateCallback)
 DefaultCallback.Create().Register("gorm:commit_or_rollback_transaction", commitOrRollbackTransactionCallback)
 ```
 
+## Unscoped
+当调用了db.Unscoped() 则设置了db.search.Unscoped=true, 而它用于scope.go的whereSql， 或者deleteCallback.deleteCallback
+
+```go
+    //如果没有设置Unscoped 同时数据库表中又有deleted_at列（安全删除) 
+    //如果有，则包含deleted_at的数据
+    if !scope.Search.Unscoped && hasDeletedAtField {
+        //deletedAtField.DBName表示数据库中deleted_at的名称
+            sql := fmt.Sprintf("%v.%v IS NULL", quotedTableName, scope.Quote(deletedAtField.DBName))
+            primaryConditions = append(primaryConditions, sql)
+    }
+    
+    //以下是删除时调用
+    //如果没有指定unscope，则只是更新，即安全删除
+    //如果调用了db.Unscope(), 则是正常的删除
+    if !scope.Search.Unscoped && hasDeletedAtField {
+    			scope.Raw(fmt.Sprintf(
+    				"UPDATE %v SET %v=%v%v%v",
+    				scope.QuotedTableName(),
+    				scope.Quote(deletedAtField.DBName),
+    				scope.AddToVars(NowFunc()),
+    				addExtraSpaceIfExist(scope.CombinedConditionSql()),
+    				addExtraSpaceIfExist(extraOption),
+    			)).Exec()
+    		} else {
+    			scope.Raw(fmt.Sprintf(
+    				"DELETE FROM %v%v%v",
+    				scope.QuotedTableName(),
+    				addExtraSpaceIfExist(scope.CombinedConditionSql()),
+    				addExtraSpaceIfExist(extraOption),
+    			)).Exec()
+    		}
+    
+	
+```
