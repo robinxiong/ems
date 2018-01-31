@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 
+	"ems/core"
+
 	"github.com/jinzhu/gorm"
 )
 
@@ -45,7 +47,10 @@ func (s *Status) SetPublishStatus(status bool) {
 }
 
 type Publish struct {
-	DB *gorm.DB
+	SearchHander   func(db *gorm.DB, context *core.Context) *gorm.DB
+	DB             *gorm.DB          //draft model
+	deleteCallback func(*gorm.Scope) //正常删除操作的回调
+	logger         LoggerInterface
 }
 
 //缓存生成的model表名
@@ -91,7 +96,6 @@ func New(db *gorm.DB) *Publish {
 					}
 					//创建整个表，对于dropTable如果它存在many2many它也会创建子表, 比如drop(&Product{}) 它会先创建Product, product_categories product_languages, 然后在删除product
 
-
 				}
 
 				var forceDraftTable bool
@@ -119,7 +123,28 @@ func New(db *gorm.DB) *Publish {
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").Register("publish:sync_to_production_after_create", syncCreateFromProductionToDraft)
 	//提交事件前，注册回调
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").Register("gorm:create_publish_event", createPublishEvent)
-	return &Publish{DB: db}
+
+	//设置当前的表为_draft, 同时设置publish_status列的值为true
+	db.Callback().Delete().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
+	deleteCallback := db.Callback().Delete().Get("gorm:delete")
+	db.Callback().Delete().Replace("gorm:delete", deleteScope)
+	db.Callback().Delete().Before("gorm:commit_or_rollback_transaction").
+		Register("publish:sync_to_production_after_delete", syncDeleteFromProductionToDraft)
+	db.Callback().Delete().Before("gorm:commit_or_rollback_transaction").Register("gorm:create_publish_event", createPublishEvent)
+	db.Callback().Update().Before("gorm:commit_or_rollback_transaction").
+		Register("publish:sync_to_production", syncUpdateFromProductionToDraft)
+	db.Callback().Update().Before("gorm:commit_or_rollback_transaction").Register("gorm:create_publish_event", createPublishEvent)
+	//先更新draft表
+	db.Callback().Update().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
+
+	//对于production不强制先从draft表查找数据
+	db.Callback().RowQuery().Before("gorm:row_query").Register("publish:set_table_in_draft_mode", setTableAndPublishStatus(false))
+	db.Callback().Query().Before("gorm:query").Register("publish:set_table_in_draft_mode", setTableAndPublishStatus(false))
+
+	searchHandler := func(db *gorm.DB, context *core.Context) *gorm.DB {
+		return db.Unscoped()
+	}
+	return &Publish{DB: db, SearchHander: searchHandler, deleteCallback: deleteCallback, logger: Logger}
 }
 
 // IsDraftMode 检查db是否设置了publish:draft_mode
@@ -168,4 +193,21 @@ func (pb *Publish) AutoMigrate(values ...interface{}) {
 		//创建这个数据库表
 		pb.DraftDB().Table(DraftTableName(tableName)).AutoMigrate(value)
 	}
+}
+
+//以下是方未能跟PublishEvent相关, 用于发布信息， 可以查看event_test.go
+func (pb Publish) Publish(records ...interface{}) {
+	pb.newResolver(records...).Publish()
+}
+
+//创建一个解析器，用于发布单条或者多条记录
+//它会解析所有的记录和record相关的依赖，然后将_draft中的数据更新到production
+func (pb Publish) newResolver(records ...interface{}) *resolver {
+	//resolver用来解析product以及它many2many相关的表，和publish_event表
+
+	return &resolver{publish: pb, Records: records, DB: pb.DB, Dependencies: map[string]*dependency{}}
+}
+
+func (pb Publish) Discard(records ...interface{}) {
+	pb.newResolver(records...).Discard()
 }

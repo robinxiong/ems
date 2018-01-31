@@ -1,6 +1,9 @@
 package publish
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"fmt"
+)
 
 
 //isProductionModeAndNewScope 用来检测当前db是publish模式(或者没有设置)，同时table实现了publishInterface
@@ -42,7 +45,7 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(scope *gorm.Scope) {
 
 				if IsDraftMode(scope.DB()) {
 					//db中是否设置了publish:publish_event变量，如果设置了, 则创建publish:creating_publish_event,并设置true,
-					//设置PublishStatus列为true
+					//而如果没有在db中设置publish:publish_event, 则直接_draft表的设置PublishStatus列为true
 					//查看 publish_event_test.go TestCreateNewEvent
 					if _, ok := scope.DB().Get(publishEvent); ok {
 						scope.InstanceSet("publish:creating_publish_event", true)
@@ -61,8 +64,8 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(scope *gorm.Scope) {
 		}
 	}
 }
-//setTableAndPublishStatus回调中设置了scope的tableName为_draft(不管db是否为publish或者draft模式)
-//如果是production,即db中没有设置draft模式，则复制到production表中创建一个相同的记录
+//setTableAndPublishStatus回调中设置了scope的tableName为_draft
+//而当前 db是production,即db中没有设置draft模式，在上一步回调中，创建的是_draft记录， 所以需要在production表中创建一个相同的记录
 func syncCreateFromProductionToDraft(scope *gorm.Scope){
 	if !scope.HasError() {
 		//克隆一个scope, 重新执行createCallback(gorm/callback_create.go), 即数据库表中创建一个记录
@@ -82,6 +85,50 @@ func createPublishEvent(scope *gorm.Scope){
 				event.PublishStatus = DIRTY
 				scope.Err(scope.NewDB().Save(&event).Error)
 			}
+		}
+	}
+}
+
+//替换通用的deleteCallback 回调函数
+func deleteScope(scope *gorm.Scope) {
+	if !scope.HasError() {
+		_, supportedModel := scope.InstanceGet("publish:supported_model")
+		//如果没有设置Unscoped,同时db是draft模式，则蓝天新deleted_at和publish_status为true
+		if !scope.Search.Unscoped && supportedModel && IsDraftMode(scope.DB()) {
+			scope.Raw(
+				fmt.Sprintf("UPDATE %v SET deleted_at=%v, publish_status=%v %v",
+					scope.QuotedTableName(),
+					scope.AddToVars(gorm.NowFunc()),
+					scope.AddToVars(DIRTY),
+					scope.CombinedConditionSql(),
+				))
+			scope.Exec()
+		} else {
+			//production, 直接调用删除回调, 正常删除_draft表中的数据, 如果有delete_at列，则安全删除
+			scope.DB().Callback().Delete().Get("gorm:delete")(scope)
+		}
+	}
+}
+
+//如果是db为, production模式, 还需要删除production表中的数据
+func syncDeleteFromProductionToDraft(scope *gorm.Scope) {
+	if !scope.HasError() {
+		if ok, clone := isProductionModeAndNewScope(scope); ok {
+			scope.DB().Callback().Delete().Get("gorm:delete")(clone)
+		}
+	}
+}
+
+func syncUpdateFromProductionToDraft(scope *gorm.Scope) {
+	if !scope.HasError() {
+		if ok, clone := isProductionModeAndNewScope(scope); ok {
+			if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
+				table := OriginalTableName(scope.TableName())
+				clone.Search = scope.Search
+				clone.Search.Table(table)
+				clone.InstanceSet("gorm:update_attrs", updateAttrs)
+			}
+			scope.DB().Callback().Update().Get("gorm:update")(clone)
 		}
 	}
 }

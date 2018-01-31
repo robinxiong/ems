@@ -12,4 +12,7 @@ https://github.com/azumads/faker 假数据
 shell语法 http://tldp.org/LDP/abs/html/comparison-ops.html
 shell颜色 https://misc.flogisoft.com/bash/tip_colors_and_formatting
 
-
+学习过程
+================================
+l10n
+publish

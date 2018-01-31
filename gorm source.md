@@ -549,6 +549,7 @@ DefaultCallback.Create().Register("gorm:commit_or_rollback_transaction", commitO
 ```
 
 ## Unscoped
+
 当调用了db.Unscoped() 则设置了db.search.Unscoped=true, 而它用于scope.go的whereSql， 或者deleteCallback.deleteCallback
 
 ```go
@@ -582,4 +583,14 @@ DefaultCallback.Create().Register("gorm:commit_or_rollback_transaction", commitO
     		}
     
 	
+```
+
+
+
+##常见用户
+```go
+db.First(&Product, "name=?", "name").RecordNotFound
+db.First(&Color, "name=?", "name").Error != nil 
+db.Model(&product).Related(&product.Color); //product包售了Color.Id, 所以通过它找到Color的详细信息
+
 ```
