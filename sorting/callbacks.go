@@ -1,16 +1,19 @@
 package sorting
 
 import (
-	"github.com/jinzhu/gorm"
-	"reflect"
 	"ems/l10n"
-	"fmt"
-	"strings"
 	"ems/publish"
 	"encoding/json"
+	"fmt"
+	"reflect"
+	"strings"
+
+	"github.com/jinzhu/gorm"
+	"log"
 )
 
-func initalizePosition(scope *gorm.Scope){
+func initalizePosition(scope *gorm.Scope) {
+
 	if !scope.HasError() {
 		if _, ok := scope.Value.(sortingInterface); ok {
 			var lastPosition int
@@ -56,7 +59,7 @@ func createPublishEvent(db *gorm.DB, value interface{}) (err error) {
 			err = db.New().Where("publish_status = ?", publish.DIRTY).Where(map[string]interface{}{
 				"name":     "changed_sorting",
 				"argument": string(result),
-			}).Attrs(map[string]interface{}{  //默认值
+			}).Attrs(map[string]interface{}{ //默认值
 				"publish_status": publish.DIRTY,
 				"description":    "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
 			}).FirstOrCreate(&publish.PublishEvent{}).Error
@@ -91,7 +94,6 @@ func reorderPositions(scope *gorm.Scope) {
 			} else {
 				sql = fmt.Sprintf("UPDATE %v SET position = (SELECT COUNT(pos) + 1 FROM (SELECT DISTINCT(position) AS pos FROM %v) AS t2 WHERE t2.pos < %v.position)", table, table, table)
 			}
-
 
 			if scope.NewDB().Exec(sql, additionalValues...).Error == nil {
 				// Create Publish Event

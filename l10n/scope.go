@@ -15,25 +15,35 @@ func getInterface(scope *gorm.Scope) (i interface{}) {
 	value := reflect.ValueOf(scope.Value)
 	reflectType := value.Type()
 	if reflectType.Kind() == reflect.Slice || reflectType.Kind() == reflect.Ptr {
+
 		reflectType = reflectType.Elem()
 	}
 
 	if reflectType.Kind() != reflect.Struct {
 		return
 	}
+
 	return value.Interface()
 }
 
 //当一个数据库表model, 在创建时或者更新时，有一个数据库操作会话会传入beforeCreate/beforeUpdate, 通过这个会话可以获得model要保存或者更新数所库时的值
 func IsLocalizable(scope *gorm.Scope) (IsLocalizable bool) {
 
-	if scope.Value == nil {
-		return
+	if scope.GetModelStruct().ModelType == nil {
+		return false
 	}
-
-	_, IsLocalizable = getInterface(scope).(l10nInterface)
-
+	_, IsLocalizable = reflect.New(scope.GetModelStruct().ModelType).Interface().(l10nInterface)
 	return
+
+	/*
+		不能发现  var brands []Brand是否为IsLocalizable
+		if scope.Value == nil {
+			return
+		}
+
+		_, IsLocalizable = getInterface(scope).(l10nInterface)
+
+		return*/
 	/*
 		原始方法
 		if scope.GetModelStruct().ModelType == nil {
@@ -77,11 +87,11 @@ func getLocale(scope *gorm.Scope) (locale string, isLocale bool) {
 //设置scope中的所对应的model所对应struct的字段， 如果这个字段为LanguageCode, 则设置它的值
 func setLocale(scope *gorm.Scope, locale string) {
 	/*
-	i := getInterface(scope)
-	if v, ok := i.(l10nInterface); ok {
-		//log.Println(v, locale)
-		v.SetLocale(locale) //直接修改了底层数据是无效的，因为在创建对像是，会调用scope.Fields()，检查这个field是否为空，除非调用isblank（检查field.Field)是否为空
-	}
+		i := getInterface(scope)
+		if v, ok := i.(l10nInterface); ok {
+			//log.Println(v, locale)
+			v.SetLocale(locale) //直接修改了底层数据是无效的，因为在创建对像是，会调用scope.Fields()，检查这个field是否为空，除非调用isblank（检查field.Field)是否为空
+		}
 	*/
 	for _, field := range scope.Fields() {
 		if field.Name == "LanguageCode" {

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"ems/test/utils"
-	"log"
+	"reflect"
 
 	"github.com/jinzhu/gorm"
+	"log"
 )
 
 type Product struct {
@@ -13,9 +13,11 @@ type Product struct {
 }
 
 func main() {
-	db := utils.TestDB()
-	scope := db.NewScope(&Product{})
-	for _, field := range scope.Fields() {
-		log.Println(scope.Quote(field.DBName))
-	}
+	var a float64 = 3.4
+	v := reflect.ValueOf(&a).Elem()
+	log.Println(v.CanAddr())
+
+	p := &Product{Name:"Robin"}
+	v1 := reflect.ValueOf(&p)
+	log.Println(v1.CanSet())
 }

@@ -10,6 +10,7 @@ import (
 )
 
 func beforeQuery(scope *gorm.Scope) {
+
 	if IsLocalizable(scope) {
 		quotedTableName := scope.QuotedTableName()
 		quotedPrimaryKey := scope.Quote(scope.PrimaryKey()) //id column or first primary key
@@ -24,6 +25,8 @@ func beforeQuery(scope *gorm.Scope) {
 			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), Global)
 		case "locale":
 			//sorting/callbacks.go initalizePosition
+			//如果l10n:locale为空，没有设置，则返回所有locale, zh-CN, en-US
+
 			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), locale)
 			//取反，查询不在当前locale的全局行
 		case "reverse":
