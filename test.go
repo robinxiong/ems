@@ -1,23 +1,18 @@
 package main
 
 import (
-	"reflect"
+	"log"
 
 	"github.com/jinzhu/gorm"
-	"log"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-type Product struct {
-	gorm.Model
-	Name string
-}
+var (
+	DB *gorm.DB
+)
 
 func main() {
-	var a float64 = 3.4
-	v := reflect.ValueOf(&a).Elem()
-	log.Println(v.CanAddr())
-
-	p := &Product{Name:"Robin"}
-	v1 := reflect.ValueOf(&p)
-	log.Println(v1.CanSet())
+	log.Println(DB)
 }

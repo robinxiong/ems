@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/fatih/color"
 	"ems/middlewares"
+
+	"github.com/fatih/color"
 )
 
 func main() {
@@ -22,8 +23,6 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/", routes.Router())
 
-
-
 	if *compileTemplate {
 
 	}
@@ -32,9 +31,8 @@ func main() {
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.Config.Port), middlewares.Apply(mux)); err != nil {
 		panic(err)
 	}
-/*	if err := http.ListenAndServeTLS(fmt.Sprintf(":%d", config.Config.Port),"server.cert", "server.key", middlewares.Apply(mux)); err != nil {
+	/*	if err := http.ListenAndServeTLS(fmt.Sprintf(":%d", config.Config.Port),"server.cert", "server.key", middlewares.Apply(mux)); err != nil {
 		panic(err)
 	}*/
-
 
 }

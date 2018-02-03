@@ -6,6 +6,14 @@ import (
 )
 
 // Base defined a base struct for storages
+// 所以media的基础类，它实现了Media接口，其它类filesystem和oss（以对像保存文件）都继承此类
+// model struct保存以聚合的方式，oss Oss字段，保存它相关的资源, 例如
+/*
+	type Product struct {
+	  gorm.Model
+	  Image oss.OSS
+	}
+ */
 type Base struct {
 	FileName    string
 	Url         string

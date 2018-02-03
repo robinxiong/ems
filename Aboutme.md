@@ -6,7 +6,7 @@ https://github.com/gin-gonic/gin  路由
 https://github.com/fatih/color ANSI shell颜色
 github.com/manveru/gobdd bdd测试框架
 https://github.com/azumads/faker 假数据
-
+github.com/mattn/go-sqlite3 导致编译很慢，所以不要在db中导入split3的支持 或者 go install github.com/mattn/go-sqlite3 
 学习资源
 =============================================================================
 shell语法 http://tldp.org/LDP/abs/html/comparison-ops.html
@@ -24,12 +24,19 @@ sorting
 
 validation
 
-media
+publish2 未完成 
+serializable_meta 未完成 
+
+oss 
+
+media 未完成 
   
   如果某个字段带了Media或者oss, 则需要调用注册的回调，来保存或者读取图片，文字信息
   需要先了解以下包
+  serializable_meta, 它在保存不固定结构时使用，当结构中涉级到media文件，需要调用media的saveAndCropImage回调
   oss (Object Storage Service)将文件保存到文件系统，FTP, 或者云文件
   
+
 
 
 

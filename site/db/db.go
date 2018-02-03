@@ -9,7 +9,11 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	//_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"ems/l10n"
+	"ems/sorting"
+	"ems/validations"
+	"ems/publish2"
 )
 
 var (
@@ -36,8 +40,11 @@ func init() {
 			DB.LogMode(true)
 		}
 
-		//todo RegisterCallback
-
+		l10n.RegisterCallbacks(DB)
+		sorting.RegisterCallbacks(DB)
+		validations.RegisterCallbacks(DB)
+		//todo: media registercallbacks
+		publish2.RegisterCallbacks(DB)
 	} else {
 		panic(err)
 	}

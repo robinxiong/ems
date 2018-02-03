@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"log"
 )
 
 func initalizePosition(scope *gorm.Scope) {

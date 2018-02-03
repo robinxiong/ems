@@ -22,7 +22,7 @@ type SMTPConfig struct {
 }
 
 var Config = struct {
-	Port uint `default:"8080" env:"PORT"`
+	Port uint `default:"5000" env:"PORT"`
 	DB   struct {
 		Name     string `env:"DBName" default:"ems"`
 		Adapter  string `env:"DBAdapter" default:"mysql"`

@@ -17,6 +17,7 @@ var rootMux *http.ServeMux
 var WildcardRouter *wildcard_router.WildcardRouter
 
 func Router() *http.ServeMux {
+
 	if rootMux == nil {
 		router := chi.NewRouter()
 		router.Use(middleware.Logger)
