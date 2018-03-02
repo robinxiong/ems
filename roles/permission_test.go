@@ -117,7 +117,7 @@ func TestCustomizePermission(t *testing.T) {
 func TestRegisterRole(t *testing.T) {
 	permission := roles.Allow(roles.Create, "admin")
 	roles.Register("admin", func(req *http.Request, currentUser interface{}) bool {
-		//可以能currentUser作更多的判断
+		//可以 将currentUser作更多的判断
 		return req.RemoteAddr == "127.0.0.1" && currentUser == nil
 	})
 	httpRequest, err := http.NewRequest("get", "/", nil)
@@ -126,7 +126,13 @@ func TestRegisterRole(t *testing.T) {
 	}
 	httpRequest.RemoteAddr = "127.0.0.1"
 	MatchedRoles := roles.MatchedRoles(httpRequest, nil)
-	pass := permission.HasPermission(roles.Create, MatchedRoles...)
+
+	rs := make([]interface{}, len(MatchedRoles))
+
+	for i, v := range MatchedRoles {
+		rs[i] = v
+	}
+	pass := permission.HasPermission(roles.Create, rs...)
 	if pass == false{
 		t.Errorf("当前用户不是拥有本地角色")
 	}

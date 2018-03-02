@@ -12,7 +12,7 @@ type CurrentUser interface {
 type Context struct {
 	Request *http.Request
 	Writer http.ResponseWriter
-	CurrentUser CurrentUser
+	CurrentUser CurrentUser  //保存当前用户信息
 	Roles []string
 	DB *gorm.DB
 	Config *Config

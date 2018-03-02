@@ -75,7 +75,9 @@ func (render *Render) RegisterViewPath(paths ...string) {
 				render.AssetFileSystem.RegisterPath(filepath.Join(utils.AppRoot, "vendor", pth))
 			} else {
 				for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+
 					if p := filepath.Join(gopath, "src", pth); isExistingDir(p) {
+
 						render.ViewPaths = append(render.ViewPaths, p)
 						render.AssetFileSystem.RegisterPath(p)
 					}
@@ -130,6 +132,7 @@ func (render *Render) Funcs(funcMap template.FuncMap) *Template {
 
 // Execute render template with default "application" layout.
 func (render *Render) Execute(name string, context interface{}, request *http.Request, writer http.ResponseWriter) error {
+
 	tmpl := &Template{render: render, usingDefaultLayout: true}
 	return tmpl.Execute(name, context, request, writer)
 }
@@ -144,5 +147,6 @@ func (render *Render) RegisterFuncMap(name string, fc interface{}) {
 
 // Asset get content from AssetFS by name
 func (render *Render) Asset(name string) ([]byte, error) {
+
 	return render.AssetFileSystem.Asset(name)
 }

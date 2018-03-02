@@ -12,8 +12,8 @@ import (
 //AssetFileSystem AssetFS base on FileSystem
 
 type AssetFileSystem struct {
-	paths        []string //用来保存所有的asset路径
-	nameSpacedFS map[string]Interface  //保存Sub AssetFileSystem
+	paths        []string             //用来保存所有的asset路径
+	nameSpacedFS map[string]Interface //保存Sub AssetFileSystem
 }
 
 func (fs *AssetFileSystem) RegisterPath(pth string) error {
@@ -78,7 +78,6 @@ func (fs *AssetFileSystem) Glob(pattern string) (matches []string, err error) {
 func (fs *AssetFileSystem) Compile() error {
 	return nil
 }
-
 
 // NameSpace return namespaced filesystem
 func (fs *AssetFileSystem) NameSpace(nameSpace string) Interface {

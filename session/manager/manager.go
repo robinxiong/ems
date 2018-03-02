@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/sessions"
 	"ems/middlewares"
 	"net/http"
+	"github.com/gorilla/securecookie"
 )
 /*
 usage:
@@ -24,7 +25,8 @@ func (redirectBack *RedirectBack) Middleware(handler http.Handler) http.Handler 
 	})
 }
  */
-var SessionManager session.ManagerInterface = gorilla.New("_session", sessions.NewCookieStore([]byte("secret")))
+ var key = securecookie.GenerateRandomKey(64)
+var SessionManager session.ManagerInterface = gorilla.New("_session", sessions.NewCookieStore(key))
 func init() {
 	middlewares.Use(middlewares.Middleware{
 		Name: "session",

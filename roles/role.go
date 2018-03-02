@@ -14,7 +14,7 @@ const (
 //Checker 检查当前的request是否跟跟当前的角色匹配
 type Checker func(req *http.Request, user interface{}) bool
 
-//Role 是一个struct 类型， 包含所有的角色的定义 definitions
+//Role 是一个struct 类型，比如global角色
 type Role struct {
 	definitions map[string]Checker
 }
@@ -41,7 +41,7 @@ func (role *Role) Register(name string, fc Checker){
 }
 
 
-//NewPermission 初妈化角色的权限
+//NewPermission 初始化角色的权限
 func (role *Role) NewPermission() *Permission{
 	return &Permission{
 		Role: role,

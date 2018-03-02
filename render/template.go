@@ -43,6 +43,7 @@ func (tmpl *Template) Funcs(funcMap template.FuncMap) *Template {
 }
 
 // Render render tmpl
+// Render  template会首先读取layout/applicaiton.tmpl, 然后找到application.tmpl的yield位置，读取templateName
 func (tmpl *Template) Render(templateName string, obj interface{}, request *http.Request, writer http.ResponseWriter) (template.HTML, error) {
 	var (
 		content []byte
@@ -87,20 +88,23 @@ func (tmpl *Template) Render(templateName string, obj interface{}, request *http
 		}
 	)
 	funcMap["render"] = render
+	//在layout的yield中读取当前模板
 	funcMap["yield"] = func() (template.HTML, error) { return render(templateName) }
 	layout := tmpl.layout
 	usingDefaultLayout := false
-
+	//在render.Execute方法中tmpl.layout没有设置, 则layout == "", usingDefaultLayout=true
 	if layout == "" && tmpl.usingDefaultLayout {
 		usingDefaultLayout = true
-		layout = tmpl.render.DefaultLayout
+		layout = tmpl.render.DefaultLayout //使用application layout
 	}
 
+	//首先渲染layout
 	if layout != "" {
+		//查找app/views(render中注册的view路径)/layouts/application.tmpl
 		content, err = tmpl.findTemplate(filepath.Join("layouts", layout))
 
 		if err == nil {
-
+			//如果模板中有render方法，则渲染子模板
 			if t, err = template.New("").Funcs(funcMap).Parse(string(content)); err == nil {
 
 				var tpl bytes.Buffer
@@ -115,6 +119,8 @@ func (tmpl *Template) Render(templateName string, obj interface{}, request *http
 			return template.HTML(""), err
 		}
 	}
+
+	//调取layout发生错误时，直接读取模板, 比如yield没有找到对应的模板时
 
 	if content, err = tmpl.findTemplate(templateName); err == nil {
 		if t, err = template.New("").Funcs(funcMap).Parse(string(content)); err == nil {
@@ -147,5 +153,6 @@ func (tmpl *Template) Execute(templateName string, obj interface{}, req *http.Re
 }
 
 func (tmpl *Template) findTemplate(name string) ([]byte, error) {
+
 	return tmpl.render.Asset(name + ".tmpl")
 }

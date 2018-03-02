@@ -28,9 +28,22 @@ func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if paths[0] == "assets" {
 			DefaultAssetHandler(context)
 		}
+
+
+		//eg: /auth/password/login
+		if provider := serveMux.Auth.GetProvider(paths[0]); provider != nil {
+			context.Provider = provider
+			switch paths[1] {
+			case "login":
+				provider.Login(context)
+			}
+		}
+
 	} else if len(paths) == 1 {
+
 		switch paths[0] {
 		case "login":
+			//读取登录页面 localhost:5000/auth/login
 			serveMux.Auth.Render.Execute("auth/login", context, req, w) //context是传递给template的对像
 		default:
 			http.NotFound(w, req)

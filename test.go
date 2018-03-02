@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"net/http"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -14,5 +14,8 @@ var (
 )
 
 func main() {
-	log.Println(DB)
+	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
+		res.Write([]byte("hello world"))
+	})
+	http.ListenAndServe(":5001", nil)
 }

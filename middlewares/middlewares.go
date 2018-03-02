@@ -199,7 +199,7 @@ func TestApply(t *testing.T) {
 	result.ServeHTTP(res, req)
 }
 
- */
+*/
 func (stack *MiddlewareStack) Apply(handler http.Handler) http.Handler {
 	var (
 		compiledHandler        http.Handler
@@ -211,6 +211,7 @@ func (stack *MiddlewareStack) Apply(handler http.Handler) http.Handler {
 	}
 
 	for idx := len(sortedMiddlewares) - 1; idx >= 0; idx-- {
+
 		middleware := sortedMiddlewares[idx]
 
 		if compiledHandler == nil {

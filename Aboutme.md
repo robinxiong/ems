@@ -7,6 +7,7 @@ https://github.com/fatih/color ANSI shell颜色
 github.com/manveru/gobdd bdd测试框架
 https://github.com/azumads/faker 假数据
 github.com/mattn/go-sqlite3 导致编译很慢，所以不要在db中导入split3的支持 或者 go install github.com/mattn/go-sqlite3 
+https://github.com/theplant/cldr 常规的翻译包，数字，货币，日历
 学习资源
 =============================================================================
 shell语法 http://tldp.org/LDP/abs/html/comparison-ops.html
@@ -38,5 +39,6 @@ media 未完成
   
 
 
-
-
+模板设置
+==================================
+auth登陆页面的模板设置在auth.New auth_themes/clean.New中设置模板所在的路径, auth/controller.go中定义了serveHTTP

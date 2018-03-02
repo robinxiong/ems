@@ -29,6 +29,23 @@ func (gorilla Gorilla) getSession(req *http.Request) (*sessions.Session, error) 
 	if r, ok := req.Context().Value(reader).(*http.Request); ok {
 		return gorilla.Store.Get(r, gorilla.SessionName)
 	}
+
+	/*	gorilla.Store调用Get方法, 它将调用Cookiestore的Get方法
+		CookieStore的Get方法将查找内存对像gorilla/context中保存的以req为键的Registry(每一次请求完成时gorilla/context会清空当前的req所对应的Registry)
+
+		type Registry struct {
+			request  *http.Request
+			sessions map[string]sessionInfo
+		}
+
+		Registry在Get(cookieStore, gorilla.SessionName)
+		如果的registery的session中没有保存到name所对应的session, 则调用store创建一个session, 它将调用CookieStore的New方法，从request的cookie中解析数据
+		并且保存进registry.sessions中
+
+		保存session到cookie, 则是调用regsitry.Get返回的session的Save, 它会调用CookieStore在保存到cookie中
+
+
+	 */
 	return gorilla.Store.Get(req, gorilla.SessionName)
 }
 

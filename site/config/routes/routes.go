@@ -11,6 +11,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+
+	"ems/site/config/auth"
 )
 
 var rootMux *http.ServeMux
@@ -41,6 +43,7 @@ func Router() *http.ServeMux {
 		router.Get("/", controllers.HomeIndex)
 
 		rootMux = http.NewServeMux()
+		rootMux.Handle("/auth/", auth.Auth.NewServeMux()) //config/auth
 		WildcardRouter = wildcard_router.New()
 		WildcardRouter.MountTo("/", rootMux)
 		WildcardRouter.AddHandler(router)

@@ -1,5 +1,7 @@
 # WildcardRouter
 
+
+用来查找数据库中的动态路由， 比如PageHandler, FAQHandler不同数据库表中查询，如果没有找到，则返回404错误
 WildcardRouter handles [*dynamic routes*](https://en.wikipedia.org/wiki/Dynamic_routing).
 
 [![GoDoc](https://godoc.org/github.com/qor/wildcard_router?status.svg)](https://godoc.org/github.com/qor/wildcard_router)

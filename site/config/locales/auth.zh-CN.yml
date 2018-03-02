@@ -1,0 +1,29 @@
+zh-CN:
+  auth:
+    sign_in: "登录"
+    or_sign_in_with: "OR SIGN IN WITH"
+    sign_up: "注册"
+    form:
+      email: "邮箱"
+      email_placeholder: "邮箱地址"
+      password: "密码"
+      password_placeholder: "密码"
+      new_password: "新的密码"
+      new_password_placeholder: "输入你新的密码"
+      password_confirm: "确认密码"
+      password_confirm_placeholder: "确认密码"
+      sign_in: "登录"
+      sign_up: "注册"
+      reset_password: "重置密码"
+      forgot_password: "忘记密码"
+    confirmations:
+      resend_confirmation: "重新发送邮件"
+    passwords:
+      reset_password: "重置密码"
+      forgot_password: "密记密码?"
+      forgot_password_desc: "输入您的邮件地址，我们将发送密码重置链接到你的邮箱"
+    links:
+      sign_in: "已经注册? 登录"
+      sign_in_with: "通过 {{$1}} 登入"
+      sign_up: "还没有帐号? 点击这里注册"
+      forgot_password: "忘记密码?"

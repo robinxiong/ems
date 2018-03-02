@@ -1,0 +1,2 @@
+AuthIdentity   用于记录用户登录信息auth/auth_identity
+translation 创建i18n对像时，调用backends.database的New方法

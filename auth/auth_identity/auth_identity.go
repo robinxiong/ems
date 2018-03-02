@@ -5,17 +5,17 @@ import (
 	"time"
 )
 
-// AuthIdentity auth identity session model
-type AuthIdentity struct {
+type AuthIdentity struct{
 	gorm.Model
 	Basic
 	SignLogs
 }
 
 type Basic struct {
-	Provider          string // phone, email, wechat, github...
-	UID               string `gorm:"column:uid"`
+	Provider string // phone, email, wechat, github...
+	UID  string `gorm:"column:uid"`
 	EncryptedPassword string
 	UserID            string
-	ConfirmedAt       *time.Time
+	ConfirmedAt       *time.Time  //验证的时间
 }
+

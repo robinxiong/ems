@@ -1,0 +1,28 @@
+{{/* 调用 controller.go中的AuthURL方法 */}}
+<link rel="stylesheet" media="all" href='{{.AuthURL "/assets/auth.css"}}' />
+<div class="container qor-auth">
+<div class="qor-auth-box">
+    <h1>{{t "auth.sign_in"}}</h1>
+    <a class="signup-link" href='{{.AuthURL "register"}}'>
+    {{ t "auth.links.sign_up" }}
+</a>
+    <form action='{{.AuthURL "password/login"}}' method="post">
+    <ul class="auth-form">
+        <li>
+            <label for="email">{{t "auth.form.email"}}</label>
+            <input type="email" id="email" name="login" placeholder='{{t "auth.form.email_placeholder"}}' value=''>
+        </li>
+
+        <li>
+            <label for="password">{{t "auth.form.password"}}</label>
+            <a class="forgot-password" href='{{.AuthURL "password/new"}}'>{{ t "auth.links.forgot_password" }}</a>
+        <input type="password" class="form-control" id="password" name="password" placeholder='{{t "auth.form.password_placeholder"}}'>
+    </li>
+
+    <li>
+        <button type="submit" class="button button__primary">{{t "auth.form.sign_in"}}</button>
+    </li>
+</ul>
+</form>
+</div>
+</div>

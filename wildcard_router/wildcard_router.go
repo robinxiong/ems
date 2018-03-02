@@ -58,13 +58,16 @@ func (w *WildcardRouter) ServeHTTP(writer http.ResponseWriter, req *http.Request
 
 
 	for _, handler := range w.handlers {
+		//如果在 handler中调用了w.Write([]byte("")), 则它会执行wildcardRouterWriter中的write方法，修改wildcardRouterWriter的status
+		// 如果status不为0, 同时也非待于http.StatusNotFound, 返回
 		if handler.ServeHTTP(wildcardRouterWriter, req); wildcardRouterWriter.isProcessed() {
 			return
 		}
+		//无实际效果, 可以不需要调用
 		wildcardRouterWriter.reset()
 	}
 
-	//如果没有找到，这时需要设置为true, 这样到跟将404状态码返回给客户端
+	//如果没有找到，这时需要设置为true, 这样到将404状态码返回给客户端
 	wildcardRouterWriter.skipNotFoundCheck = true
 	if w.notFoundHandler != nil {
 		w.notFoundHandler(writer, req)
@@ -78,7 +81,8 @@ type WildcardRouterWriter struct {
 	http.ResponseWriter
 	//保存状态码
 	status int
-	//是否跳过状态检查, 如果指定为true, 则会在所有的状态码返回给客户端，如果为false, 则跳过404状态码的返回
+	//如果skipNotFoundCheck为true, 它可以直接调用write向客户端写入数据
+	//如果skipNotFoundCheck为false, 则必须检查是WildcardRouterWriter.Status是否为http.StatusNotFound, 如果是，则不向客户端写入，如果是，则向客户端写入数据
 	skipNotFoundCheck bool
 }
 

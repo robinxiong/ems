@@ -1,16 +1,17 @@
 package middlewares
 
 import (
-	"net/http"
-	"testing"
-	"log"
-	"net/http/httptest"
-	"math/rand"
-	"time"
-	"sort"
 	"fmt"
+	"log"
+	"math/rand"
+	"net/http"
+	"net/http/httptest"
+	"sort"
 	"strings"
+	"testing"
+	"time"
 )
+
 func registerMiddlewareRandomly(registeredMiddlewares []Middleware) *MiddlewareStack {
 	stack := &MiddlewareStack{}
 	s := rand.NewSource(time.Now().UnixNano())
@@ -37,7 +38,6 @@ func registerMiddleware(registeredMiddlewares []Middleware) *MiddlewareStack {
 	return stack
 }
 
-
 func checkSortedMiddlewares(stack *MiddlewareStack, expectedNames []string, t *testing.T) {
 	var (
 		sortedNames          []string
@@ -53,14 +53,12 @@ func checkSortedMiddlewares(stack *MiddlewareStack, expectedNames []string, t *t
 	}
 }
 
-
 func TestCompileMiddlewares(t *testing.T) {
 	availableMiddlewares := []Middleware{{Name: "cookie"}, {Name: "flash", InsertAfter: []string{"cookie"}}, {Name: "auth", InsertAfter: []string{"flash"}}}
 
 	stack := registerMiddlewareRandomly(availableMiddlewares)
 	checkSortedMiddlewares(stack, []string{"cookie", "flash", "auth"}, t)
 }
-
 
 func TestCompileComplicatedMiddlewares(t *testing.T) {
 	availableMiddlewares := []Middleware{{Name: "A"}, {Name: "B", InsertBefore: []string{"C", "D"}}, {Name: "C", InsertAfter: []string{"E"}}, {Name: "D", InsertAfter: []string{"E"}, InsertBefore: []string{"C"}}, {Name: "E", InsertBefore: []string{"B"}, InsertAfter: []string{"A"}}}
@@ -82,7 +80,6 @@ func TestMiddlewaresWithRequires(t *testing.T) {
 	}
 }
 
-
 func TestApply(t *testing.T) {
 
 	stack := &MiddlewareStack{}
@@ -94,9 +91,9 @@ func TestApply(t *testing.T) {
 				defer handler.ServeHTTP(w, r)
 			})
 		},
-		InsertAfter: []string{"A"},
-		InsertBefore:[]string{"C"},
-		Requires: []string{"A", "C"},
+		InsertAfter:  []string{"A"},
+		InsertBefore: []string{"C"},
+		Requires:     []string{"A", "C"},
 	})
 	stack.Use(Middleware{
 		Name: "A",
@@ -118,7 +115,7 @@ func TestApply(t *testing.T) {
 		InsertAfter: []string{"B"},
 	})
 	log.Println(stack.String())
-	result := stack.Apply(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	result := stack.Apply(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("hanlder function")
 	}))
 
@@ -129,6 +126,3 @@ func TestApply(t *testing.T) {
 	}
 	result.ServeHTTP(res, req)
 }
-
-
-
