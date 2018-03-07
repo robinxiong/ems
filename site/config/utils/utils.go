@@ -12,3 +12,5 @@ func GetCurrentLocale(req *http.Request) string {
 	}
 	return locale
 }
+
+

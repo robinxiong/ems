@@ -2,7 +2,26 @@
 <html>
 <head>
     <title>Application Layout</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0"/>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,200i,300,300i,400,400i,600,600i,700,700i|Playfair+Display|Raleway" rel="stylesheet">
+    <link rel="stylesheet" media="all" href="/dist/qor.css"/>
+    <script src="/vendors/jquery.js"></script>
+    <link href="//use.fontawesome.com/6a90f27203.css" media="all" rel="stylesheet"/>
 </head>
-
+<body>
+<div class="container">
+    <div class="row">
+        {{range $message := flashes}}
+        {{if eq $message.Type "error"}}
+        <div class="alert alert-danger">{{$message.Message}}</div>
+        {{else}}
+        <div class="alert alert-success">{{$message.Message}}</div>
+        {{end}}
+        {{end}}
+    </div>
+</div>
 {{ yield }}
+</body>
+
 </html>

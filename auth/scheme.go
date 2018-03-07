@@ -13,5 +13,5 @@ type Schema struct {
 	Phone     string
 	URL       string
 
-	RawInfo interface{}
+	RawInfo interface{} //原始的req, 它包含了注册form信息
 }

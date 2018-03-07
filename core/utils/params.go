@@ -10,7 +10,7 @@ import (
 //handler path, request 路径
 //捕获路由中的参数
 // source = "/test/:id" pth="/test/123456
-//返回匹配到的参数，匹配的路径，以及bool是否配匹配
+//返回匹配到的参数，匹配的路径，以及bool是否匹配
 func ParamsMatch(source string, pth string) (url.Values, string, bool){
 	var (
 		i, j int

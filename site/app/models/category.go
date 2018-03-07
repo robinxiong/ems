@@ -5,9 +5,10 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/qor/l10n"
-	"github.com/qor/sorting"
+
 	"github.com/qor/validations"
+	"ems/sorting"
+	"ems/l10n"
 )
 
 type Category struct {

@@ -33,7 +33,9 @@ func Router() *http.ServeMux {
 				if locale := utils.GetLocale(siteContext); locale != "" {
 					tx = tx.Set("l10n:locale", locale)
 				}
-				//todo publish2
+				//设置的DB将在auth/utils.go GetDB中获取
+				//todo:publish2
+				//ctx := context.WithValue(req.Context(), utils.ContextDBName, publish2.PreviewByDB(tx, qorContext))
 				next.ServeHTTP(w, req)
 			})
 

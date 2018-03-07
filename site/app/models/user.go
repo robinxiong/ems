@@ -35,7 +35,10 @@ type User struct {
 	AcceptNews    bool `form:"accept-news"`
 }
 
-
+//实现core.CurrentUser接口，否则config/auth/admin_auth.go将返回错误
+func (user User) DisplayName() string {
+	return user.Email
+}
 
 
 

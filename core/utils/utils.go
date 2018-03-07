@@ -14,6 +14,8 @@ import (
 
 	"github.com/gosimple/slug"
 	"github.com/jinzhu/gorm"
+	"net/url"
+	"path"
 )
 
 var AppRoot, _ = os.Getwd()
@@ -146,4 +148,35 @@ func filenameWithLineNum() string {
 		}
 	}
 	return ""
+}
+
+
+// GetAbsURL get absolute URL from request, refer: https://stackoverflow.com/questions/6899069/why-are-request-url-host-and-scheme-blank-in-the-development-server
+func GetAbsURL(req *http.Request) url.URL {
+	var result url.URL
+
+	if req.URL.IsAbs() {
+		return *req.URL
+	}
+
+	if domain := req.Header.Get("Origin"); domain != "" {
+		parseResult, _ := url.Parse(domain)
+		result = *parseResult
+	}
+
+	result.Parse(req.RequestURI)
+	return result
+}
+
+
+func FileServer(dir http.Dir) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := path.Join(string(dir), r.URL.Path)
+		if f, err := os.Stat(p); err == nil && !f.IsDir() {
+			http.ServeFile(w, r, p)
+			return
+		}
+
+		http.NotFound(w, r)
+	})
 }

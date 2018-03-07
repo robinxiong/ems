@@ -2,7 +2,7 @@ package auth
 
 import (
 	"net/http"
-	"ems/core/redirect_back"
+	"ems/redirect_back"
 )
 
 // RedirectorInterface redirector interface

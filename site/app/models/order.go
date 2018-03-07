@@ -3,7 +3,7 @@ package models
 import (
 	"github.com/jinzhu/gorm"
 	"time"
-	"github.com/qor/transition"
+
 )
 
 type Order struct {
@@ -22,7 +22,7 @@ type Order struct {
 	BillingAddressID  uint `form:"billingaddress"`
 	BillingAddress    Address
 	OrderItems        []OrderItem
-	transition.Transition
+
 }
 
 type OrderItem struct {
@@ -33,5 +33,5 @@ type OrderItem struct {
 	Quantity        uint `cartitem:"Quantity"`
 	Price           float32
 	DiscountRate    uint
-	transition.Transition
+
 }

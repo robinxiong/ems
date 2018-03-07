@@ -22,7 +22,10 @@ func (context *Context) FuncMap() template.FuncMap {
 		"load_admin_stylesheets": context.loadAdminStyleSheets, //返回指定siteName的css, 如果没有指定siteName, 则返回application_css
 		"load_theme_stylesheets": context.loadThemeStyleSheets,
 		"javascript_tag":         context.javaScriptTag,
-		"load_actions":  context.loadActions,  //加载views/action下的子模板
+		"load_actions":  context.loadActions,  //加载views/action下的子模板, action会按照文件前面的数字进行排名
+		"qor_theme_class":        context.themesClass, //返回theme style的类名称，用于body标签
+		"render":      context.Render,  //读取指定的模板
+		"logout_url":         context.logoutURL, //sidebar.tmpl获取logout url
 	}
 	return funcMap
 }
@@ -42,6 +45,8 @@ func (context *Context) styleSheetTag(names ...string) template.HTML {
 	}
 	return template.HTML(strings.Join(results, ""))
 }
+
+//layout.tmpl加使用, 根据站点名称加载css, 这里为/admin/assets/stylesheets/qor_demo.css
 func (context *Context) loadAdminStyleSheets() template.HTML{
 	var siteName = context.Admin.SiteName
 	if siteName == "" {
@@ -168,7 +173,33 @@ func (context *Context) loadActions(action string) template.HTML{
 
 	return template.HTML(strings.TrimSpace(result.String()))
 }
+func (context *Context) themesClass() (result string) {
+	var results = map[string]bool{}
+	if context.Resource != nil {
+		for _, theme := range context.Resource.Config.Themes {
+			if strings.HasPrefix(theme.GetName(), "-") {
+				results[strings.TrimPrefix(theme.GetName(), "-")] = false
+			} else if _, ok := results[theme.GetName()]; !ok {
+				results[theme.GetName()] = true
+			}
+		}
+	}
 
+	var names []string
+	for name, enabled := range results {
+		if enabled {
+			names = append(names, "qor-theme-"+name)
+		}
+	}
+	return strings.Join(names, " ")
+}
+
+func (context *Context) logoutURL() string {
+	if context.Admin.Auth != nil {
+		return context.Admin.Auth.LogoutURL(context)
+	}
+	return ""
+}
 
 func (context *Context) t(values ...interface{}) template.HTML {
 	switch len(values) {
@@ -177,7 +208,7 @@ func (context *Context) t(values ...interface{}) template.HTML {
 	case 2:
 		return context.Admin.T(context.Context, fmt.Sprint(values[0]), fmt.Sprint(values[1]))
 	case 3:
-		return context.Admin.T(context.Context, fmt.Sprint(values[0]), fmt.Sprint(values[1]), values[2:]...)
+		return context.Admin.T(context.Context, fmt.Sprint(values[0]), fmt.Sprint(values[1]), values[2:]...) //shared/sidebar.tmpl
 	default:
 		utils.ExitWithMsg("passed wrong params for T")
 	}

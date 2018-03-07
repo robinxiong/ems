@@ -28,7 +28,7 @@ type Context struct {
 }
 
 func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
-	return &Context{Context: &core.Context{Request: r, Writer: w}, Admin: admin, Settings: map[string]interface{}{}}
+	return &Context{Context: &core.Context{Config: &core.Config{DB: admin.DB}, Request: r, Writer: w}, Admin: admin, Settings: map[string]interface{}{}}
 
 }
 

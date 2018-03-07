@@ -36,6 +36,9 @@ func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			switch paths[1] {
 			case "login":
 				provider.Login(context)
+			case "register":
+				//password.Register
+				provider.Register(context)
 			}
 		}
 
@@ -45,6 +48,9 @@ func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		case "login":
 			//读取登录页面 localhost:5000/auth/login
 			serveMux.Auth.Render.Execute("auth/login", context, req, w) //context是传递给template的对像
+		case "register":
+			// /auth/register路由
+			serveMux.Auth.Render.Execute("auth/register", context, req, w)
 		default:
 			http.NotFound(w, req)
 		}

@@ -4,11 +4,13 @@ import (
 	"ems/session"
 	"ems/session/gorilla"
 
-	"github.com/gorilla/sessions"
 	"ems/middlewares"
 	"net/http"
-	"github.com/gorilla/securecookie"
+
+	"github.com/gorilla/sessions"
+	"time"
 )
+
 /*
 usage:
 	{SessionManager:  manager.SessionManager}
@@ -24,10 +26,19 @@ func (redirectBack *RedirectBack) Middleware(handler http.Handler) http.Handler 
 		handler.ServeHTTP(w, req)
 	})
 }
- */
- var key = securecookie.GenerateRandomKey(64)
-var SessionManager session.ManagerInterface = gorilla.New("_session", sessions.NewCookieStore(key))
+*/
+//secureCoookie用来加密session的密码
+var (
+	key                                     = []byte("加密session为cookie的密码")
+	cookieStore                             = sessions.NewCookieStore(key)
+	SessionManager session.ManagerInterface = gorilla.New("_session", cookieStore)
+)
+
 func init() {
+	cookieStore.Options = &sessions.Options{
+		Path:   "/",
+		MaxAge: int(time.Hour * 24), //0则表示只在当前有效
+	}
 	middlewares.Use(middlewares.Middleware{
 		Name: "session",
 		Handler: func(handler http.Handler) http.Handler {

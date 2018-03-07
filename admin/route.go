@@ -92,6 +92,9 @@ func (serverMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			http.Redirect(w, req, admin.Auth.LoginURL(context), http.StatusSeeOther)
 			return
 		}
+
+		context.CurrentUser = currentUser
+		context.SetDB(context.GetDB().Set("qor:current_user", context.CurrentUser))
 	}
 
 	//router中注册的controller
@@ -109,7 +112,7 @@ func (serverMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Call first middleware
-	// 调用 NewServeMux中的qor_hanlder, 它执行上一步获取到的handler, 即controller中的handle
+	// 调用 NewServeMux中的qor_handler, 它执行上一步获取到的handler, 即controller中的handle
 	for _, middleware := range admin.router.middlewares {
 		middleware.Handler(context, middleware)
 		break

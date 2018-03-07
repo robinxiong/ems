@@ -5,6 +5,7 @@ import (
 	"ems/core"
 	"ems/roles"
 	"ems/site/app/models"
+	"fmt"
 	"net/http"
 )
 
@@ -26,6 +27,14 @@ func (AdminAuth) LogoutURL(c *admin.Context) string {
 }
 
 func (AdminAuth) GetCurrentUser(c *admin.Context) core.CurrentUser {
-	currentUser, _ := Auth.GetCurrentUser(c.Request).(core.CurrentUser)
-	return currentUser
+	currentUser := Auth.GetCurrentUser(c.Request)
+	if currentUser != nil {
+		coreCurrentUser, ok := currentUser.(core.CurrentUser)
+		if !ok {
+			fmt.Printf("User %#v haven't implement core.CurrentUser interface\n", currentUser)
+		}
+		return coreCurrentUser
+	}
+
+	return nil
 }

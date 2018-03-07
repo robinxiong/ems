@@ -1,7 +1,7 @@
 package config
 
 import (
-	"ems/core/redirect_back"
+	"ems/redirect_back"
 	"ems/mailer"
 	"ems/render"
 	"ems/session/manager"

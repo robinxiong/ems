@@ -6,11 +6,11 @@ import (
 )
 
 type ManagerInterface interface {
-	//Add value to session data, if value is not string, will marshal it to json
-	Add(w http.ResponseWriter, r *http.Request, key string, value interface{}) error
-	//Get value from session data
-	Get(r *http.Request, key string) string
-	//Pop value from session data
+	// Add value to session data, if value is not string, will marshal it into JSON encoding and save it into session data.
+	Add(w http.ResponseWriter, req *http.Request, key string, value interface{}) error
+	// Get value from session data
+	Get(req *http.Request, key string) string
+	// Pop value from session data
 	Pop(w http.ResponseWriter, req *http.Request, key string) string
 
 	// Flash add flash message to session data
@@ -25,6 +25,7 @@ type ManagerInterface interface {
 
 	// Middleware returns a new session manager middleware instance.
 	Middleware(http.Handler) http.Handler
+
 }
 
 // Message message struct
