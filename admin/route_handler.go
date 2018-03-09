@@ -1,9 +1,14 @@
 package admin
 
-import "strings"
+import (
+	"strings"
+	"ems/roles"
+)
 
 type RouteConfig struct {
-
+	Resource *Resource
+	Permissioner   HasPermissioner
+	PermissionMode roles.PermissionMode
 }
 
 type requestHandler func(c *Context)

@@ -1,15 +1,16 @@
-package models
+package orders
 
 import (
 	"github.com/jinzhu/gorm"
 	"time"
 
+	"ems/site/models/users"
 )
 
 type Order struct {
 	gorm.Model
 	UserID            uint
-	User              User
+	User              users.User
 	PaymentAmount     float32
 	AbandonedReason   string
 	DiscountValue     uint
@@ -18,9 +19,9 @@ type Order struct {
 	ReturnedAt        *time.Time
 	CancelledAt       *time.Time
 	ShippingAddressID uint `form:"shippingaddress"`
-	ShippingAddress   Address
+	ShippingAddress   users.Address
 	BillingAddressID  uint `form:"billingaddress"`
-	BillingAddress    Address
+	BillingAddress    users.Address
 	OrderItems        []OrderItem
 
 }
@@ -29,7 +30,6 @@ type OrderItem struct {
 	gorm.Model
 	OrderID         uint
 	SizeVariationID uint `cartitem:"SizeVariationID"`
-	SizeVariation   SizeVariation
 	Quantity        uint `cartitem:"Quantity"`
 	Price           float32
 	DiscountRate    uint

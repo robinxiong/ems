@@ -31,19 +31,19 @@ function RenderChart(ordersData, usersData) {
 
 function ChartData(lables, counts) {
     var chartData = {
-        labels: lables,
-        datasets: [
-            {
-                label: "Users Report",
-                fillColor: "rgba(151,187,205,0.2)",
-                strokeColor: "rgba(151,187,205,1)",
-                pointColor: "rgba(151,187,205,1)",
-                pointStrokeColor: "#fff",
-                pointHighlightFill: "#fff",
-                pointHighlightStroke: "rgba(151,187,205,1)",
-                data: counts
-            }
-        ]
+      labels: lables,
+      datasets: [
+      {
+        label: "Users Report",
+        fillColor: "rgba(151,187,205,0.2)",
+        strokeColor: "rgba(151,187,205,1)",
+        pointColor: "rgba(151,187,205,1)",
+        pointStrokeColor: "#fff",
+        pointHighlightFill: "#fff",
+        pointHighlightStroke: "rgba(151,187,205,1)",
+        data: counts
+      }
+      ]
     };
     return chartData;
 }
@@ -60,7 +60,7 @@ Date.prototype.Format = function (fmt) {
     };
     if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
     for (var k in o)
-        if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+    if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
     return fmt;
 }
 
@@ -73,37 +73,37 @@ Date.prototype.AddDate = function (add){
 
 // qor dashboard
 $(document).ready(function() {
-    var yesterday = (new Date()).AddDate(-1);
-    var defStartDate = yesterday.AddDate(-6);
-    $("#startDate").val(defStartDate.Format("yyyy-MM-dd"));
+  var yesterday = (new Date()).AddDate(-1);
+  var defStartDate = yesterday.AddDate(-6);
+  $("#startDate").val(defStartDate.Format("yyyy-MM-dd"));
+  $("#endDate").val(yesterday.Format("yyyy-MM-dd"));
+  $(".j-update-record").click(function(){
+    $.getJSON("/admin/reports.json",{startDate:$("#startDate").val(), endDate:$("#endDate").val()},function(jsonData){
+      RenderChart(jsonData.Orders,jsonData.Users);
+    });
+  });
+  $(".j-update-record").click();
+
+  $(".yesterday-reports").click(function() {
+    $("#startDate").val(yesterday.Format("yyyy-MM-dd"));
     $("#endDate").val(yesterday.Format("yyyy-MM-dd"));
-    $(".j-update-record").click(function(){
-        $.getJSON("/admin/reports.json",{startDate:$("#startDate").val(), endDate:$("#endDate").val()},function(jsonData){
-            RenderChart(jsonData.Orders,jsonData.Users);
-        });
-    });
     $(".j-update-record").click();
+    $(this).blur();
+  });
 
-    $(".yesterday-reports").click(function() {
-        $("#startDate").val(yesterday.Format("yyyy-MM-dd"));
-        $("#endDate").val(yesterday.Format("yyyy-MM-dd"));
-        $(".j-update-record").click();
-        $(this).blur();
-    });
+  $(".this-week-reports").click(function() {
+    var beginningOfThisWeek = yesterday.AddDate(-yesterday.getDay() + 1)
+    $("#startDate").val(beginningOfThisWeek.Format("yyyy-MM-dd"));
+    $("#endDate").val(beginningOfThisWeek.AddDate(6).Format("yyyy-MM-dd"));
+    $(".j-update-record").click();
+    $(this).blur();
+  });
 
-    $(".this-week-reports").click(function() {
-        var beginningOfThisWeek = yesterday.AddDate(-yesterday.getDay() + 1)
-        $("#startDate").val(beginningOfThisWeek.Format("yyyy-MM-dd"));
-        $("#endDate").val(beginningOfThisWeek.AddDate(6).Format("yyyy-MM-dd"));
-        $(".j-update-record").click();
-        $(this).blur();
-    });
-
-    $(".last-week-reports").click(function() {
-        var endOfLastWeek = yesterday.AddDate(-yesterday.getDay())
-        $("#startDate").val(endOfLastWeek.AddDate(-6).Format("yyyy-MM-dd"));
-        $("#endDate").val(endOfLastWeek.Format("yyyy-MM-dd"));
-        $(".j-update-record").click();
-        $(this).blur();
-    });
+  $(".last-week-reports").click(function() {
+    var endOfLastWeek = yesterday.AddDate(-yesterday.getDay())
+    $("#startDate").val(endOfLastWeek.AddDate(-6).Format("yyyy-MM-dd"));
+    $("#endDate").val(endOfLastWeek.Format("yyyy-MM-dd"));
+    $(".j-update-record").click();
+    $(this).blur();
+  });
 });

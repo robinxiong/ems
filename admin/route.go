@@ -3,9 +3,11 @@ package admin
 import (
 	"ems/core"
 	"ems/core/utils"
+	"ems/roles"
 	"log"
 	"net/http"
 	"net/url"
+	"path"
 	"regexp"
 	"sort"
 	"strings"
@@ -116,6 +118,75 @@ func (serverMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, middleware := range admin.router.middlewares {
 		middleware.Handler(context, middleware)
 		break
+	}
+}
+
+//在admin.AddResource中调用， 将一个resource注册到路由
+func (admin *Admin) RegisterResourceRouters(res *Resource, actions ...string) {
+	var (
+		primaryKeyParams = res.ParamIDName()         // :资源名_id
+		adminController  = &Controller{Admin: admin} //为每个资源创建一个controller, 比如NewServeMux也创建了一个controller用于注册""路径
+	)
+
+	//遍历actions
+	for _, action := range actions {
+		switch strings.ToLower(action) {
+		case "read":
+			if res.Config.Singleton {
+				//如果资源添加时为Singleton，单个
+				res.RegisterRoute("GET", "/", adminController.Show, &RouteConfig{PermissionMode: roles.Read})
+			} else {
+
+				// Index, 多个
+				res.RegisterRoute("GET", "/", adminController.Index, &RouteConfig{PermissionMode: roles.Read})
+
+				// Show  显示单个 /:product_id/
+				res.RegisterRoute("GET", primaryKeyParams, adminController.Show, &RouteConfig{PermissionMode: roles.Read})
+			}
+		}
+	}
+}
+
+func (res *Resource) RegisterRoute(method string, relativePath string, handler requestHandler, config *RouteConfig) {
+	if config == nil {
+		config = &RouteConfig{}
+	}
+
+	config.Resource = res
+
+	var (
+		prefix string
+		param  = res.ToParam()
+		router = res.GetAdmin().router
+	)
+
+	//一个匿名函数
+	if prefix = func(r *Resource) string {
+		currentParam := param //当前resource的资源名称 colors or order_items
+		for r.ParentResource != nil {
+			parentPath := r.ParentResource.ToParam()
+			//不向router中注册相同的resource
+			if parentPath == param {
+				return ""
+			}
+			currentParam = path.Join(parentPath, r.ParentResource.ParamIDName(), currentParam)
+			r = r.ParentResource
+		}
+		return "/" + strings.Trim(currentParam, "/")
+	}(res); prefix == "" {
+		return
+	}
+	//relativePath 通常 "/", 即当前资源下的哪一个操作
+	//Get, Post方法中会调用newHandle将，handler和config绑定，在ServeHTTP，执行路由时，通过找到handler就能获取它所对应的Resource
+	switch strings.ToUpper(method) {
+	case "GET":
+		router.Get(path.Join(prefix, relativePath), handler, config)
+	case "POST":
+		router.Post(path.Join(prefix, relativePath), handler, config)
+	case "PUT":
+		router.Put(path.Join(prefix, relativePath), handler, config)
+	case "DELETE":
+		router.Delete(path.Join(prefix, relativePath), handler, config)
 	}
 }
 

@@ -21,5 +21,6 @@ type Config struct {
 
 func (app App) ConfigureApplication(application *application.Application) {
 	Admin := application.Admin
+	SetupDashboard(Admin)
 	application.Router.Mount(app.Config.Prefix, Admin.NewServeMux(app.Config.Prefix))
 }

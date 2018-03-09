@@ -5,7 +5,7 @@ import (
 	"ems/auth"
 	"ems/site/db"
 	"ems/site/config"
-	"ems/site/app/models"
+	"ems/site/models/users"
 )
 
 var (
@@ -14,7 +14,7 @@ var (
 		DB: db.DB,
 		Render: config.View,
 		Mailer: config.Mailer,
-		UserModel: models.User{},
+		UserModel: users.User{},
 		Redirector: auth.Redirector{RedirectBack: config.RedirectBack},
 	})
 )

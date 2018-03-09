@@ -22,6 +22,16 @@ type Resourcer interface {
 	NewStruct() interface{}
 }
 
+type ConfigureResourceBeforeInitializeInterface interface{
+
+	ConfigureResourceBeforeInitialize(Resourcer)
+}
+
+
+type ConfigureResourceInterface interface {
+	ConfigureResource(Resourcer)
+}
+
 // Resource用于定义资源的基础信息, 它实际上一个数据库model的抽像
 type Resource struct {
 	Name            string
@@ -86,4 +96,33 @@ type Validator struct {
 type Processor struct {
 	Name    string
 	Handler func(interface{}, *MetaValues, *core.Context) error
+}
+
+
+func (res *Resource) GetMetas([]string) []Metaor {
+	panic("implement me")
+}
+
+func (res *Resource) CallFindMany(i interface{}, context *core.Context) error {
+	panic("implement me")
+}
+
+func (res *Resource) CallFindOne(i interface{}, value *MetaValue, context *core.Context) error {
+	panic("implement me")
+}
+
+func (res *Resource) CallSave(i interface{}, context *core.Context) error {
+	panic("implement me")
+}
+
+func (res *Resource) CallDelete(i interface{}, context *core.Context) error {
+	panic("implement me")
+}
+
+func (res *Resource) NewSlice() interface{} {
+	panic("implement me")
+}
+
+func (res *Resource) NewStruct() interface{} {
+	panic("implement me")
 }

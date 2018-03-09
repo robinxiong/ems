@@ -4,14 +4,14 @@ import (
 	"ems/admin"
 	"ems/core"
 	"ems/roles"
-	"ems/site/app/models"
 	"fmt"
 	"net/http"
+	"ems/site/models/users"
 )
 
 func init() {
 	roles.Register("admin", func(req *http.Request, currentUser interface{}) bool {
-		return currentUser != nil && currentUser.(*models.User).Role == "Admin"
+		return currentUser != nil && currentUser.(*users.User).Role == "Admin"
 	})
 }
 

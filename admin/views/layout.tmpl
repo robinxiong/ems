@@ -29,7 +29,12 @@
     <div class="mdl-layout__drawer">
         {{render "shared/sidebar"}}
     </div>
+
+    <main class="mdl-layout__content qor-page" id="content">
+        {{.Content}}
+    </main>
 </div>
+{{javascript_tag "admin_default"}}
 </body>
 
 </html>

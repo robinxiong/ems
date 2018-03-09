@@ -1,9 +1,10 @@
-package models
+package users
 
 import (
-	"github.com/jinzhu/gorm"
-	"time"
 	"ems/media/oss"
+	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type User struct {
@@ -18,7 +19,6 @@ type User struct {
 	DefaultBillingAddress  uint `form:"default-billing-address"`
 	DefaultShippingAddress uint `form:"default-shipping-address"`
 	Addresses              []Address
-	Orders                 []Order
 	Avatar                 AvatarImageStorage
 
 	// Confirm
@@ -39,7 +39,5 @@ type User struct {
 func (user User) DisplayName() string {
 	return user.Email
 }
-
-
 
 type AvatarImageStorage struct{ oss.OSS }

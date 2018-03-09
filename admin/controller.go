@@ -8,6 +8,7 @@ import (
 	"crypto/md5"
 	"mime"
 	"path/filepath"
+	"log"
 )
 
 //Controller包含admin对像，它在config中创建, 是一个全局的对像
@@ -20,6 +21,16 @@ func (ac *Controller) Dashboard(context *Context) {
 	context.Execute("dashboard", nil)
 }
 
+//Show 渲染show page 单个
+//Usage route.go RegisterResourceRoutes
+func (ac *Controller) Show(context *Context) {
+	log.Println("show")
+}
+
+//产品列表，多个值
+func (ac *Controller) Index(context *Context) {
+	log.Println("index")
+}
 var (
 	cacheSince = time.Now().Format(http.TimeFormat)
 )

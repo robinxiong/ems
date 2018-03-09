@@ -10,4 +10,10 @@
         {{end}}
         <a class="mdl-button mdl-js-button mdl-button--icon" href="{{logout_url}}" title="{{t "qor_admin.account.logout" "logout"}}" alt="{{t "qor_admin.account.logout" "logout"}}"><i class="material-icons">exit_to_app</i></a>
     </div>
+    <div class="sidebar-body">
+    <div class="qor-menu-container">
+        {{/*render menu.tmple, 传递get_menus获取到的数据，它是一个func_map*/}}
+        {{render "shared/menu" get_menus}}
+    </div>
+    </div>
 </div>

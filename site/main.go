@@ -24,6 +24,7 @@ import (
 	"ems/site/config/auth"
 	"ems/site/app/account"
 	"ems/site/config/bindatafs"
+	"ems/site/app/products"
 )
 
 func main() {
@@ -64,6 +65,8 @@ func main() {
 
 	Application.Use(account.New(&account.Config{}))
 	Application.Use(adminapp.New(&adminapp.Config{}))
+	Application.Use(products.New(&products.Config{}))
+
 	Application.Use(static.New(&static.Config{
 		Prefixs: []string{"/system"},
 		Handler: utils.FileServer(http.Dir(filepath.Join(config.Root, "public"))),
