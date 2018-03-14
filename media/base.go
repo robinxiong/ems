@@ -3,6 +3,8 @@ package media
 import (
 	"io"
 	"mime/multipart"
+	"ems/core/resource"
+	"ems/admin"
 )
 
 // Base defined a base struct for storages
@@ -34,4 +36,17 @@ type CropOption struct {
 // FileHeader is an interface, for matched values, when call its `Open` method will return `multipart.File`
 type FileHeader interface {
 	Open() (multipart.File, error)
+}
+
+
+
+
+//当meida.oss聚合到其它的struct时，它在生成meta的配置, 可以查看admin/meta_test.go, 默认struct的类型为single_edit, 而调用这个函数后，meta.Type的类型为 file
+//这个方法在meta.config()中调用
+func (*Base) ConfigureMetaBeforeInitialize(meta resource.Metaor) {
+	if meta, ok := meta.(*admin.Meta); ok {
+		if meta.Type == "" {
+			meta.Type = "file"
+		}
+	}
 }

@@ -9,6 +9,7 @@ import (
 	"mime"
 	"path/filepath"
 	"log"
+	"ems/responder"
 )
 
 //Controller包含admin对像，它在config中创建, 是一个全局的对像
@@ -27,9 +28,15 @@ func (ac *Controller) Show(context *Context) {
 	log.Println("show")
 }
 
-//产品列表，多个值
+//产品列表，多个值, resource
 func (ac *Controller) Index(context *Context) {
-	log.Println("index")
+	result, err := context.FindMany()
+	context.AddError(err)
+	responder.With("html", func() {
+		context.Execute("index", result)
+	}).With([]string{"json", "xml"}, func() {
+		//context.Encode("index", result)
+	}).Respond(context.Request)
 }
 var (
 	cacheSince = time.Now().Format(http.TimeFormat)

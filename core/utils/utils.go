@@ -12,10 +12,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gosimple/slug"
-	"github.com/jinzhu/gorm"
 	"net/url"
 	"path"
+
+	"github.com/gosimple/slug"
+	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/now"
 )
 
 var AppRoot, _ = os.Getwd()
@@ -150,7 +152,6 @@ func filenameWithLineNum() string {
 	return ""
 }
 
-
 // GetAbsURL get absolute URL from request, refer: https://stackoverflow.com/questions/6899069/why-are-request-url-host-and-scheme-blank-in-the-development-server
 func GetAbsURL(req *http.Request) url.URL {
 	var result url.URL
@@ -168,7 +169,6 @@ func GetAbsURL(req *http.Request) url.URL {
 	return result
 }
 
-
 func FileServer(dir http.Dir) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := path.Join(string(dir), r.URL.Path)
@@ -180,3 +180,15 @@ func FileServer(dir http.Dir) http.Handler {
 		http.NotFound(w, r)
 	})
 }
+
+func ParseTime(timeStr string, context *core.Context) (time.Time, error) {
+	return now.Parse(timeStr)
+}
+
+func Indirect(v reflect.Value) reflect.Value {
+	for v.Kind() == reflect.Ptr {
+		v = reflect.Indirect(v)
+	}
+	return v
+}
+

@@ -1,4 +1,4 @@
-package models
+package blogs
 
 import (
 	"ems/publish2"

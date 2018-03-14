@@ -5,6 +5,7 @@ import (
 	"ems/core/assetfs"
 	"html/template"
 	"ems/roles"
+	"reflect"
 )
 
 type HasPermissioner interface {
@@ -25,4 +26,9 @@ type I18n interface {
 	Scope(scope string) I18n
 	Default(value string) I18n
 	T(locale string, key string, args ...interface{}) template.HTML
+}
+
+
+func equal(a, b interface{}) bool {
+	return reflect.DeepEqual(a, b)
 }

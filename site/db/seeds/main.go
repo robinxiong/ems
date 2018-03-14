@@ -2,19 +2,24 @@ package main
 
 import (
 	"ems/auth/auth_identity"
-	"ems/site/app/models"
 
 	"log"
+
+	"ems/site/models/products"
+	"ems/site/models/users"
+
+	"fmt"
 
 	"github.com/fatih/color"
 )
 
 var (
-	AdminUser *models.User
+	AdminUser *users.User
 	//Notification = notification.New(&notification.Config{})
 	Tables = []interface{}{
 		&auth_identity.AuthIdentity{},
-		&models.User{}, /*&models.Address{}, &models.Category{}, &models.Color{}, &models.Size{}, &models.Material{}, &models.Collection{},
+		&users.User{},
+		&products.Color{}, /*&models.Address{}, &models.Category{}, &models.Color{}, &models.Size{}, &models.Material{}, &models.Collection{},
 		&models.Product{}, &models.ProductImage{}, &models.ColorVariation{}, &models.SizeVariation{},
 		&models.Store{}, &models.Order{}, &models.OrderItem{}, &models.Setting{},
 		&adminseo.MySEOSetting{},
@@ -31,19 +36,25 @@ var (
 func main() {
 	//Notification.RegisterChannel(database.New(&database.Config{db.DB}))  //创建notification_message表
 
-	TruncateTables(Tables...)
+	//TruncateTables(&products.Color{})
 	createRecords()
 }
 
 func createRecords() {
 	color.Green("Start create sample data...")
-	//createSetting()
+
+	createColors()
+	fmt.Println("--> Created colors.")
 }
 
-func createSetting() {
-	setting := models.Setting{}
-
-	if err := DraftDB.Create(&setting).Error; err != nil {
-		log.Fatal("create setting (%v) failure, got err %v", setting, err)
+//product color
+func createColors() {
+	for _, c := range Seeds.Colors {
+		color := products.Color{}
+		color.Name = c.Name
+		color.Code = c.Code
+		if err := DraftDB.Create(&color).Error; err != nil {
+			log.Fatalf("create color (%v) failure, got err %v", color, err)
+		}
 	}
 }

@@ -1,13 +1,19 @@
 package main
 
 import (
-	"ems/l10n"
-	"log"
 
-	_ "github.com/go-sql-driver/mysql"
+	"log"
+	"net/http"
 )
 
 func main() {
-	log.Println(l10n.Global)
+	var peoples *[]int = &[]int{1,2,3,}
+	log.Println(peoples)
+	http.HandleFunc("/", func( w http.ResponseWriter, req *http.Request){
+		req.ParseForm()
+		scopes := req.Form["scopes"]
+		log.Println(scopes)
+	})
+	http.ListenAndServe(":8000", nil)
 
 }

@@ -99,6 +99,8 @@ func (serverMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		context.SetDB(context.GetDB().Set("qor:current_user", context.CurrentUser))
 	}
 
+	context.Roles = roles.MatchedRoles(req, currentUser) //core/resource.go中定义了Roles, MatchedRoles是匹配req和当前用户，是否符合系统中定义的角色，符合返回角色名称
+
 	//router中注册的controller
 	handlers := admin.router.routers[strings.ToUpper(req.Method)]
 	for _, handler := range handlers {
@@ -109,6 +111,7 @@ func (serverMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			}
 
 			context.RouteHandler = handler
+			context.setResource(handler.Config.Resource)
 			break
 		}
 	}

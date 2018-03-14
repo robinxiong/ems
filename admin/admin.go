@@ -96,7 +96,23 @@ func (admin *Admin) T(context *core.Context, key string, value string, values ..
 }
 
 //Resource
+// GetResource get resource with name
+func (admin *Admin) GetResource(name string) (resource *Resource) {
+	for _, res := range admin.resources {
+		modelType := utils.ModelType(res.Value)
+		// find with defined name first
+		if res.ToParam() == name || res.Name == name || modelType.String() == name {
+			return res
+		}
 
+		// if failed to find, use its model name
+		if modelType.Name() == name {
+			resource = res
+		}
+	}
+
+	return
+}
 //AddResource的第一个参数是model的值, config 为resource.go/Config 配置名称和menu，以及priority
 func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource {
 	res := admin.newResource(value, config...)

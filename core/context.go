@@ -15,6 +15,7 @@ type Context struct {
 	CurrentUser CurrentUser  //保存当前用户信息
 	Roles []string
 	DB *gorm.DB
+	ResourceID string //admin/context.setResource
 	Config *Config
 	Errors
 }

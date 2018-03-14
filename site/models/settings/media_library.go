@@ -1,4 +1,4 @@
-package models
+package settings
 
 import "ems/media/media_library"
 

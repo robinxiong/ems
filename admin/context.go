@@ -10,14 +10,15 @@ import (
 	"bytes"
 
 	"ems/core"
-
-	"github.com/qor/qor/utils"
+	"ems/core/utils"
 )
 
 //Context admin context, 用于 admin controller
 type Context struct {
 	//包含request, response, db, config, currentUser, role, errors
 	*core.Context
+	//controller.Index 列出resource所对应的数据库表FindMany, 它在route.ServeHTTP中，context.setResource时设置, 然后在action(Index)中调用FindMany
+	*Searcher
 	Admin        *Admin
 	Settings     map[string]interface{}
 	Resource     *Resource     //每一个请求包含对应的资源
@@ -96,6 +97,24 @@ func (context *Context) Render(name string, results ...interface{}) template.HTM
 	}
 	return clone.renderWith(name, clone)
 }
+// SortableAttrs set sortable attributes, sortable attributes are clickable to sort data in index page
+func (res *Resource) SortableAttrs(columns ...string) []string {
+	if len(columns) != 0 || res.sections.SortableAttrs == nil {
+		if len(columns) == 0 {
+			columns = res.ConvertSectionToStrings(res.sections.IndexSections)
+		}
+		res.sections.SortableAttrs = &[]string{}
+		scope := res.GetAdmin().DB.NewScope(res.Value)
+		for _, column := range columns {
+			if field, ok := scope.FieldByName(column); ok && field.DBName != "" {
+				attrs := append(*res.sections.SortableAttrs, column)
+				res.sections.SortableAttrs = &attrs
+			}
+		}
+	}
+	return *res.sections.SortableAttrs
+}
+
 
 //获取指定的assets文件, 比如"layout.tmpl"
 func (context *Context) Asset(layouts ...string) ([]byte, error) {
@@ -151,4 +170,15 @@ func (context *Context) renderText(text string, data interface{}) template.HTML 
 	}
 
 	return template.HTML(err.Error())
+}
+
+
+func (context *Context) setResource(res *Resource) *Context {
+	if res != nil {
+		context.Resource = res
+		context.ResourceID = res.GetPrimaryValue(context.Request)
+	}
+	//创建Searcher, 好通过context.FindMany查找资源的记录
+	context.Searcher = &Searcher{Context:context}
+	return context
 }
